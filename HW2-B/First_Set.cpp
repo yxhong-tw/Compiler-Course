@@ -5,12 +5,24 @@
 using namespace std;
 
 
+typedef struct nonTerminalSymbol
+{
+    string name;
+    vector<string> rightHand;
+    string firstSet = "";
+    bool hasLambda = false;
+}nonTerminalSymbol;
+
+
 int getInput(vector<string>*);
-int splitData(vector<string>*, vector<string>*, vector<vector<string>>*);
-int runAllNonTerminalSymbols(vector<string>*, vector<vector<string>>*, vector<vector<string>>*);
-int getFirstSet(vector<string>*, vector<vector<string>>*, string, vector<string>*, bool*);
-int findIndex(vector<string>*, string);
-int checkSame(vector<string>*, string);
+int splitData(vector<string>*, vector<nonTerminalSymbol>*);
+int runAllNonTerminalSymbols(vector<nonTerminalSymbol>*);
+int getFirstSet(vector<nonTerminalSymbol>*, string);
+int findIndex(vector<nonTerminalSymbol>*, string);
+int checkTerminalSymbol(vector<nonTerminalSymbol>* , string);
+int checkSame(string, string);
+int sortNonTerminalSymbols(vector<nonTerminalSymbol>*);
+int sortFirstSets(vector<nonTerminalSymbol>*);
 void catchError(string);
 
 
@@ -23,43 +35,37 @@ int main()
         catchError("getInput error");
     }
 
-    vector<string> nonTerminalSymbols;
-    vector<vector<string>> rightHands;
+    vector<nonTerminalSymbol> nonTerminalSymbols;
 
-    if(splitData(&lines, &nonTerminalSymbols, &rightHands) != 1)
+    if(splitData(&lines, &nonTerminalSymbols) != 1)
     {
         catchError("splitData error");
     }
 
-    vector<vector<string>> firstSets;
-
-    if(runAllNonTerminalSymbols(&nonTerminalSymbols, &rightHands, &firstSets) != 1)
+    if(runAllNonTerminalSymbols(&nonTerminalSymbols) != 1)
     {
         catchError("runAllNonTerminalSymbols error");
     }
 
-    /* test function */
-    // for(int i = 0; i < nonTerminalSymbols.size(); i++) {
-    //     cout << nonTerminalSymbols.at(i) << endl;
-
-    //     for(int j = 0; j < rightHands.at(i).size(); j++) {
-    //         cout << rightHands.at(i).at(j) << " ";
-    //     }
-    //     cout << endl;
-    // }
-    for(int i = 0; i < firstSets.size(); i++)
+    if(sortNonTerminalSymbols(&nonTerminalSymbols) != 1)
     {
-        cout << nonTerminalSymbols.at(i) << ": ";
-
-        for(int j = 0; j < firstSets.at(i).size(); j++)
-        {
-            cout << firstSets.at(i).at(j) << " ";
-        }
-
-        cout << endl;
+        catchError("sortNonTerminalSymbols error");
     }
 
-    return 48763;
+    if(sortFirstSets(&nonTerminalSymbols) != 1)
+    {
+        catchError("sortFirstSets error");
+    }
+
+    /* test function */
+    for(int i = 0; i < nonTerminalSymbols.size(); i++)
+    {
+        cout << nonTerminalSymbols.at(i).name << " " << nonTerminalSymbols.at(i).firstSet << endl;
+    }
+
+    cout << "END_OF_FIRST" << endl;
+
+    return 0;
 }
 
 
@@ -82,12 +88,13 @@ int getInput(vector<string>* linesPtr)
 }
 
 
-int splitData(vector<string>* lineStr, vector<string>* nonTerminalSymbolsPtr, vector<vector<string>>* rightHandsPtr)
+int splitData(vector<string>* lineStr, vector<nonTerminalSymbol>* nonTerminalSymbolsPtr)
 {
     for(int i = 0; i < lineStr->size(); i++)
     {
         int j = 0;
         string tempStr = "";
+        nonTerminalSymbol tempNTS;
 
         for(j; j < lineStr->at(i).length(); j++)
         {
@@ -97,39 +104,51 @@ int splitData(vector<string>* lineStr, vector<string>* nonTerminalSymbolsPtr, ve
             }
             else
             {
-                nonTerminalSymbolsPtr->push_back(tempStr);
-
+                tempNTS.name = tempStr;
                 tempStr = "";
+
                 j += 1;
 
                 break;
             }
         }
 
+
         for(j; j < lineStr->at(i).length(); j++)
-        {
-            tempStr += lineStr->at(i).at(j);
-
-            if(j == lineStr->at(i).length() - 1)
+        {            
+            if(lineStr->at(i).at(j) == '|')
             {
-                vector<string> tempVec;
-                string tempStr2 = "";
+                tempNTS.rightHand.push_back(tempStr);
+                tempStr = "";
+            }
+            else if(j == lineStr->at(i).length() - 1)
+            {
+                tempStr += lineStr->at(i).at(j);
+                tempNTS.rightHand.push_back(tempStr);
+                tempStr = "";                
+            }
+            else
+            {
+                tempStr += lineStr->at(i).at(j);
+            }
+        }
 
-                for(int k = 0; k < tempStr.length(); k++)
-                {
-                    if(tempStr.at(k) != '|')
-                    {
-                        tempStr2 += tempStr.at(k);
-                    }
+        nonTerminalSymbolsPtr->push_back(tempNTS);
+    }
 
-                    if(tempStr.at(k) == '|' || (k == tempStr.length() - 1 && tempStr != ""))
-                    {
-                        tempVec.push_back(tempStr2);
-                        tempStr2 = "";
-                    }
-                }
+    return 1;
+}
 
-                rightHandsPtr->push_back(tempVec);
+
+int runAllNonTerminalSymbols(vector<nonTerminalSymbol>* nonTerminalSymbolsPtr)
+{
+    for(int i = 0; i < nonTerminalSymbolsPtr->size(); i++)
+    {
+        if(nonTerminalSymbolsPtr->at(i).firstSet == "")
+        {
+            if(getFirstSet(nonTerminalSymbolsPtr, nonTerminalSymbolsPtr->at(i).name) != 1)
+            {
+                catchError("getFirstSet error");
             }
         }
     }
@@ -138,75 +157,81 @@ int splitData(vector<string>* lineStr, vector<string>* nonTerminalSymbolsPtr, ve
 }
 
 
-int runAllNonTerminalSymbols(vector<string>* nonTerminalSymbolsPtr, vector<vector<string>>* rightHandsPtr, vector<vector<string>>* firstSetsPtr)
+int getFirstSet(vector<nonTerminalSymbol>* nonTerminalSymbolsPtr, string currentStr)
 {
-    for(int i = 0; i < nonTerminalSymbolsPtr->size(); i++)
+    int index = findIndex(nonTerminalSymbolsPtr, currentStr);
+
+    if(index == -1)
     {
-        vector<string> firstSet;
-        bool hasLambda = false;
-
-        if(getFirstSet(nonTerminalSymbolsPtr, rightHandsPtr, nonTerminalSymbolsPtr->at(i), &firstSet, &hasLambda) != 1)
-        {
-            catchError("getFirstSet error");
-        }
-
-        firstSetsPtr->push_back(firstSet);
+        catchError("findIndex error");
     }
 
-    return 1;
-}
-
-
-int getFirstSet(vector<string>* nonTerminalSymbolsPtr, vector<vector<string>>* rightHandsPtr, string currentStr, vector<string>* firstSetPtr, bool* hasLambdaPtr)
-{
-    if(checkSame(nonTerminalSymbolsPtr, currentStr))
+    for(int i = 0; i < nonTerminalSymbolsPtr->at(index).rightHand.size(); i++)
     {
-        int index = findIndex(nonTerminalSymbolsPtr, currentStr);
-
-        if(index == -1)
+        for(int j = 0; j < nonTerminalSymbolsPtr->at(index).rightHand.at(i).length(); j++)
         {
-            catchError("findIndex error");
-        }
+            // cout << nonTerminalSymbolsPtr->at(index).name << " " << nonTerminalSymbolsPtr->at(index).rightHand.at(i).size() << endl;
+            string tempStr = "";
+            tempStr += nonTerminalSymbolsPtr->at(index).rightHand.at(i).at(j);
 
-        for(int i = 0; i < rightHandsPtr->at(index).size(); i++)
-        {
-            bool hasLambda = false;
-
-            for(int j = 0; j < rightHandsPtr->at(index).at(i).size(); j++)
+            if(checkTerminalSymbol(nonTerminalSymbolsPtr, tempStr))
             {
-                string tempStr = "";
-                tempStr += rightHandsPtr->at(index).at(i).at(j);
-                if(getFirstSet(nonTerminalSymbolsPtr, rightHandsPtr, tempStr, firstSetPtr, &hasLambda) != 1)
+                int index2 = findIndex(nonTerminalSymbolsPtr, tempStr);
+
+                if(index2 == -1)
                 {
-                    catchError("getFirstSet error");
+                    catchError("findIndex error");
                 }
 
-                if(hasLambda == false)
+                if(nonTerminalSymbolsPtr->at(index2).firstSet == "")
+                {
+                    if(getFirstSet(nonTerminalSymbolsPtr, tempStr) != 1)
+                    {
+                        catchError("getFirstSet error");
+                    }
+                }
+
+                for(int k = 0; k < nonTerminalSymbolsPtr->at(index2).firstSet.length(); k++)
+                {
+                    if(nonTerminalSymbolsPtr->at(index2).firstSet.at(k) != ';')
+                    {
+                        string tempStr2 = "";
+                        tempStr2 += nonTerminalSymbolsPtr->at(index2).firstSet.at(k);
+                        if(checkSame(nonTerminalSymbolsPtr->at(index).firstSet, tempStr2) == 1)
+                        {
+                            nonTerminalSymbolsPtr->at(index).firstSet += nonTerminalSymbolsPtr->at(index2).firstSet.at(k);
+                        }
+                    }
+                }
+
+                if(nonTerminalSymbolsPtr->at(index2).hasLambda == false)
                 {
                     break;
                 }
 
-                if(*hasLambdaPtr == false)
+                if(nonTerminalSymbolsPtr->at(index2).hasLambda == true && j == nonTerminalSymbolsPtr->at(index).rightHand.at(i).length() - 1)
                 {
-                    *hasLambdaPtr = true;
+                    if(checkSame(nonTerminalSymbolsPtr->at(index).firstSet, ";") == 1)
+                    {
+                        nonTerminalSymbolsPtr->at(index).firstSet += ";";
+                        nonTerminalSymbolsPtr->at(index).hasLambda = true;
+                    }
                 }
             }
-        }
-    }
-    else if(currentStr == ";")
-    {
-        if(checkSame(firstSetPtr, currentStr) == 0)
-        {
-            firstSetPtr->push_back(currentStr);
-        }
-        
-        *hasLambdaPtr = true;
-    }
-    else
-    {
-        if(checkSame(firstSetPtr, currentStr) == 0)
-        {
-            firstSetPtr->push_back(currentStr);
+            else
+            {
+                if(tempStr == ";")
+                {
+                    nonTerminalSymbolsPtr->at(index).hasLambda = true;
+                }
+
+                if(checkSame(nonTerminalSymbolsPtr->at(index).firstSet, tempStr) == 1)
+                {
+                    nonTerminalSymbolsPtr->at(index).firstSet += tempStr;
+                }
+
+                break;
+            }
         }
     }
 
@@ -214,11 +239,11 @@ int getFirstSet(vector<string>* nonTerminalSymbolsPtr, vector<vector<string>>* r
 }
 
 
-int findIndex(vector<string>* nonTerminalSymbolsPtr, string currentStr)
+int findIndex(vector<nonTerminalSymbol>* nonTerminalSymbolsPtr, string currentStr)
 {
     for(int i = 0; i < nonTerminalSymbolsPtr->size(); i++)
     {
-        if(currentStr == nonTerminalSymbolsPtr->at(i))
+        if(currentStr == nonTerminalSymbolsPtr->at(i).name)
         {
             return i;
         }
@@ -228,17 +253,73 @@ int findIndex(vector<string>* nonTerminalSymbolsPtr, string currentStr)
 }
 
 
-int checkSame(vector<string>* vecStrPtr, string currentStr)
+int checkTerminalSymbol(vector<nonTerminalSymbol>* nonTerminalSymbolsPtr, string currentStr)
 {
-    for(int i = 0; i < vecStrPtr->size(); i++)
+    for(int i = 0; i < nonTerminalSymbolsPtr->size(); i++)
     {
-        if(currentStr == vecStrPtr->at(i))
+        if(currentStr == nonTerminalSymbolsPtr->at(i).name)
         {
             return 1;
         }
     }
 
     return 0;
+}
+
+
+int checkSame(string firstSetStr, string currentStr)
+{
+    for(int i = 0; i < firstSetStr.length(); i++)
+    {
+        string tempStr = "";
+        tempStr += firstSetStr.at(i);
+        if(currentStr == tempStr)
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+
+int sortNonTerminalSymbols(vector<nonTerminalSymbol>* nonTerminalSymbolsPtr)
+{
+    for(int i = 0; i < nonTerminalSymbolsPtr->size() - 1; i++)
+    {
+        for(int j = 0; j < nonTerminalSymbolsPtr->size() - i - 1; j++) {
+            if(nonTerminalSymbolsPtr->at(j).name > nonTerminalSymbolsPtr->at(j+1).name)
+            {
+                nonTerminalSymbol tempNTS = nonTerminalSymbolsPtr->at(j);
+                nonTerminalSymbolsPtr->at(j) = nonTerminalSymbolsPtr->at(j + 1);
+                nonTerminalSymbolsPtr->at(j + 1) = tempNTS;
+            }
+        }
+    }
+
+    return 1;
+}
+
+
+int sortFirstSets(vector<nonTerminalSymbol>* nonTerminalSymbolsPtr)
+{
+    for(int i = 0; i < nonTerminalSymbolsPtr->size(); i++)
+    {
+        for(int j = 0; j < nonTerminalSymbolsPtr->at(i).firstSet.length() - 1; j++)
+        {
+            for(int k = 0; k < nonTerminalSymbolsPtr->at(i).firstSet.length() - j - 1; k++)
+            {
+                if(nonTerminalSymbolsPtr->at(i).firstSet.at(k) > nonTerminalSymbolsPtr->at(i).firstSet.at(k + 1))
+                {
+                    char tempChar = nonTerminalSymbolsPtr->at(i).firstSet.at(k);
+                    nonTerminalSymbolsPtr->at(i).firstSet.at(k) = nonTerminalSymbolsPtr->at(i).firstSet.at(k + 1);
+                    nonTerminalSymbolsPtr->at(i).firstSet.at(k + 1) = tempChar;
+                }
+            }
+        }
+    }
+
+    return 1;
 }
 
 

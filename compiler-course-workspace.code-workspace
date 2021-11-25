@@ -14,7 +14,8 @@
 			"deque": "cpp",
 			"string": "cpp",
 			"initializer_list": "cpp",
-			"utility": "cpp"
+			"utility": "cpp",
+			"sstream": "c"
 		}
 	}
 }
