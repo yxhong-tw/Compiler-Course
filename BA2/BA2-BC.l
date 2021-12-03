@@ -1,20 +1,19 @@
 %{
-    #include <iostream>
-    #include <string>
-    using namespace std;
+    #include <stdio.h>
     int i = 0;
+    int j = 0;
     int sharp_num = 0;
     int isList = 0;
     int isQuote = 0;
     int isStrong = 0;
-    string content = "";
-    string name = "";
-    string hlink = "";
+    char content[200];
+    char name[200];
+    char hlink[200];
 %}
 title ^[#]+[a-zA-Z0-9 ]+
 split ^[-][-][-]
 image ^[!][\[][a-zA-Z0-9 ]+[\]][\(].+[\)]
-multi ^[-][ ][\[][X]?[\]][ ][a-zA-Z0-9 ]+
+multi ^[-][ ][\[][Xx ][\]][ ][a-zA-Z0-9 ]+
 list ^[\*][ ].+
 hyperlink ^[\[].+[\]][\(].+[\)]
 quote ^[>][ ].+
@@ -31,36 +30,41 @@ quote ^[>][ ].+
         }
     }
 
-    cout << "<h" << sharp_num << ">";
+    printf("<h%d>", sharp_num);
 
     for(i; i < yyleng; i++) {
-        cout << yytext[i];
+        if(yytext[i] != '\0') {
+            printf("%c", yytext[i]);
+        }
+        else {
+            break;
+        }
     }
 
-    cout << "</h" << sharp_num << ">" << endl;
+    printf("</h%d>", sharp_num);
 }
 {split} {
     if(isList == 1) {
-        cout << "</ul>" << endl;
+        printf("</ul>\n");
         isList = 0;
     }
     else if(isQuote == 1) {
-        cout << "</blockquote>" << endl;
+        printf("</blockquote>\n");
         isQuote = 0;
     }
-    cout << "<hr />" << endl;
+    printf("<hr />");
 }
 {image} {
-    content = "";
-    name = "";
-    hlink = "";
-    content += "<img alt=\"";
+    memset(content, 0, 200);
+    memset(name, 0, 200);
+    memset(hlink, 0, 200);
+    printf("<img alt=\"");
     for(i = 0; i < yyleng; i++) {
         if(yytext[i] == '[') {
             i += 1;
-            for(i; i < yyleng; i++) {
+            for(i, j = 0; i < yyleng; i++, j++) {
                 if(yytext[i] != ']') {
-                    name += yytext[i];
+                    name[j] = yytext[i];
                 }
                 else {
                     break;
@@ -69,9 +73,9 @@ quote ^[>][ ].+
         }
         else if(yytext[i] == '(') {
             i += 1;
-            for(i; i < yyleng; i++) {
+            for(i, j = 0; i < yyleng; i++, j++) {
                 if(yytext[i] != ')') {
-                    hlink += yytext[i];
+                    hlink[j] = yytext[i];
                 }
                 else {
                     break;
@@ -79,54 +83,83 @@ quote ^[>][ ].+
             }
         }
     }
-    content += (name + "\" src=\"" + hlink + "\">");
 
-    cout << content << endl;
+    for(j = 0; j < 200; j++) {
+        if(name[j] != '\0') {
+            printf("%c", name[j]);
+        }
+        else {
+            break;
+        }
+    }
+
+    printf("\" src=\"");
+
+    for(j = 0; j < 200; j++) {
+        if(hlink[j] != '\0') {
+            printf("%c", hlink[j]);
+        }
+        else {
+            break;
+        }
+    }
+
+    printf("\">");
 }
 {multi} {
-    cout << "<p>" << endl;
-    cout << "\t" << "<input ";
+    printf("<p>\n");
+    printf("\t<input ");
     for(i = 0; i < yyleng; i++) {
         if(yytext[i] == '[') {
-            if(yytext[i+1] == 'X') {
-                cout << "checked=\"checked\" type=\"checkbox\" /> ";
+            if(yytext[i+1] == 'X' || yytext[i+1] == 'x') {
+                printf("checked=\"checked\" type=\"checkbox\" /> ");
             }
             else {
-                cout << "type=\"checkbox\" /> ";
+                printf("type=\"checkbox\" /> ");
             }
             i += 4;
             break;
         }
     }
     for(i; i < yyleng; i++) {
-        cout << yytext[i];
+        if(yytext[i] != '\0') {
+            printf("%c", yytext[i]);
+        }
+        else {
+            break;
+        }
     }
-    cout << endl << "</p>" << endl;
+    printf("\n</p>");
 }
 {list} {
     if(isList == 0) {
-        cout << "<ul>" << endl;
+        printf("<ul>\n");
         isList = 1;
     }
 
-    cout << "\t<li>";
+    printf("\t<li>");
 
     i = 2;
     for(i; i < yyleng; i++) {
-        cout << yytext[i];
+        if(yytext[i] != '\0') {
+            printf("%c", yytext[i]);
+        }
+        else {
+            break;
+        }
     }
 
-    cout << "</li>" << endl;
+    printf("</li>");
 }
 {hyperlink} {
-    name = "";
-    hlink = "";
+    memset(name, 0, 200);
+    memset(hlink, 0, 200);
     for(i = 0; i < yyleng; i++) {
         if(yytext[i] == '[') {
             i += 1;
-            for(i; i < yyleng; i++) {
+            for(i, j = 0; i < yyleng; i++, j++) {
                 if(yytext[i] != ']') {
-                    name += yytext[i];
+                    name[j] = yytext[i];
                 }
                 else {
                     break;
@@ -135,9 +168,9 @@ quote ^[>][ ].+
         }
         else if(yytext[i] == '(') {
             i += 1;
-            for(i; i < yyleng; i++) {
+            for(i, j = 0; i < yyleng; i++, j++) {
                 if(yytext[i] != ')') {
-                    hlink += yytext[i];
+                    hlink[j] = yytext[i];
                 }
                 else {
                     break;
@@ -145,29 +178,51 @@ quote ^[>][ ].+
             }
         }
     }
-    cout << "<a href=\"" << hlink << "\">" << endl;
-    cout << "\t<span>" << name << "</span>" << endl;
-    cout << "</a>" << endl;
+    printf("<a href=\"");
+
+    for(j = 0; j < 200; j++) {
+        if(hlink[j] != '\0') {
+            printf("%c", hlink[j]);
+        }
+        else {
+            break;
+        }
+    }
+    printf("\">\n");
+    printf("\t<span>");
+    for(j = 0; j < 200; j++) {
+        if(name[j] != '\0') {
+            printf("%c", name[j]);
+        }
+        else {
+            break;
+        }
+    }
+    printf("</span>\n");
+    printf("</a>");
 }
 {quote} {
     if(isQuote == 0) {
-        cout << "<blockquote>" << endl;
+        printf("<blockquote>\n");
         isQuote = 1;
     }
     
-    for(i = 0; i < yyleng; i++) {
+    for(i = 2; i < yyleng; i++) {
         if(yytext[i] == '*' && yytext[i+1] == '*') {
             if(isStrong == 0) {
-                cout << "<strong>";
+                printf("<strong>");
+                isStrong = 1;
             }
             else {
-                cout << "</strong>";
+                printf("</strong>");
+                isStrong = 0;
             }
-            i += 1;
+            i += 2;
         }
-        cout << yytext[i];
+        if(yytext[i] != '\0') {
+            printf("%c", yytext[i]);
+        }
     }
-    cout << endl;
 }
 %%
 int yywrap() {
