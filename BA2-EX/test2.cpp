@@ -65,6 +65,7 @@ int main() {
         }
 
         rules.push_back(Rule(nonTerminal, production, hasLambda));
+
         cin.getline(input, maxLineLength);
     }
 
@@ -87,18 +88,76 @@ int main() {
         cin.getline(input, maxLineLength);
     }
 
-    // sample code for observing the data, which constructed by input
-    // for(int i = 0; i < rules.size(); i++) {
-    //     cout << rules[i].nonTerminal << " -> " << rules[i].production << endl;
-    // }
+    vector<Rule> lastRules = rules;
 
-    // for(int i = 0; i < firstSets.size(); i++) {
-    //     cout << firstSets[i].nonTerminal << "'s first set is " << firstSets[i].set << endl;
-    // }
+    while(true) {
+        bool breakKey = false;
+        
+        for(int i = 0; i < rules.size(); i++) {
+            for(int j = 0; j < rules.at(i).production.length(); j++) {
+                int ruleIndex_j = getRuleIndex(&rules, rules.at(i).production.at(j));
 
-    // for(int i = 0; i < followSets.size(); i++) {
-    //     followSets.at(i).set += "$";
-    // }
+                if(ruleIndex_j == -1) {
+                    break;
+                }
+                else if(rules.at(ruleIndex_j).hasLambda = false) {
+                    break;
+                }
+                else if(j == rules.at(i).production.length() - 1 && rules.at(ruleIndex_j).hasLambda == true) {
+                    rules.at(i).hasLambda = true;
+                }
+            }
+
+
+            for(int i = 0; i < rules.size(); i++) {
+                if(rules.at(i).hasLambda != lastRules.at(i).hasLambda) {
+                    breakKey = false;
+                    break;
+                }
+                else if(i == rules.size() - 1 && rules.at(i).hasLambda == lastRules.at(i).hasLambda) {
+                    breakKey = true;
+                }
+            }
+        }
+
+        if(breakKey == true) {
+            char currentNonTerminal = '\0';
+            bool currentLambda = false;
+            for(int i = 0; i < rules.size(); i++) {
+                if(rules.at(i).hasLambda == true) {
+                    currentNonTerminal = rules.at(i).nonTerminal;
+                    currentLambda = true;
+                }
+                else if(rules.at(i).nonTerminal == currentNonTerminal && currentLambda == true) {
+                    rules.at(i).hasLambda = true;
+                }
+                else if(rules.at(i).nonTerminal != currentNonTerminal) {
+                    currentLambda = false;
+                }
+            }
+
+            currentNonTerminal = '\0';
+            currentLambda = false;
+            for(int i = rules.size() - 1; i >= 0; i--) {
+                if(rules.at(i).hasLambda == true) {
+                    currentNonTerminal = rules.at(i).nonTerminal;
+                    currentLambda = true;
+                }
+                else if(rules.at(i).nonTerminal == currentNonTerminal && currentLambda == true) {
+                    rules.at(i).hasLambda = true;
+                }
+                else if(rules.at(i).nonTerminal != currentNonTerminal) {
+                    currentLambda = false;
+                }
+            }
+
+            break;
+        }
+        else {
+            lastRules = rules;
+        }
+    }
+
     followSets.at(0).set += "$";
 
     bool breakKey = false;
@@ -121,35 +180,24 @@ int main() {
                     else {
                         followSets.at(followSetIndex_j).set += firstSets.at(firstSetIndex_k).set;
 
-                        bool toEndAllLambda = true;
-                        for(int l = k; l < rules.at(i).production.length(); l++) {
-                            int followSetIndex_l = getFSetIndex(&followSets, rules.at(i).production.at(l));
-
-                            if(followSetIndex_l == -1) {
-                                followSets.at(followSetIndex_j).set += rules.at(i).production.at(l);
-                            }
-                            else {
-                                int ruleIndex_l = getRuleIndex(&rules, rules.at(i).production.at(l));
-
-                                if(rules.at(ruleIndex_l).hasLambda != true) {
-                                    followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_l).set;
-                                    toEndAllLambda = false; 
-                                    break;
-                                }
-                            }
-                        }
-
-                        if(toEndAllLambda == true) {
-                            followSets.at(followSetIndex_j).set += "$";
-                        }
-                        // if(rules.at(ruleIndex_k).hasLambda == true) {
-                        //     int followSetIndex_k = getFSetIndex(&followSets, rules.at(i).production.at(k));
-                        //     followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_k).set;
-                        // }
                         int ruleIndex_k = getRuleIndex(&rules, rules.at(i).production.at(k));
 
                         if(rules.at(ruleIndex_k).hasLambda != true) {
                             break;
+                        }
+                        // else if(k == rules.at(i).production.length() - 1 && rules.at(ruleIndex_k).hasLambda == true) {
+                        //     int followSetIndex_i = getFSetIndex(&followSets, rules.at(i).nonTerminal);
+
+                        //     followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_i).set;
+                        // }
+                        else {
+                            int followSetIndex_k = getFSetIndex(&followSets, rules.at(i).production.at(k));
+
+                            cout << "1 " << followSets.at(followSetIndex_j).nonTerminal << " " << followSets.at(followSetIndex_j).set << endl;
+
+                            followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_k).set;
+
+                            cout << "2 " << followSets.at(followSetIndex_j).nonTerminal << " " << followSets.at(followSetIndex_j).set << endl;
                         }
                     }
                 }
