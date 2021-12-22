@@ -4,7 +4,6 @@
 
 using namespace std;
 
-
 struct Rule {
     char nonTerminal;
     string production;
@@ -18,9 +17,6 @@ public:
 };
 
 struct FSet {
-    // if A's first set contains b, c, d three symbol
-    // its nonTerminal would be A
-    // its set would be bcd
     char nonTerminal;
     string set;
 public:
@@ -36,11 +32,9 @@ int getFSetIndex(vector<FSet> *, char);
 int main() {
     const int maxLineLength = 500;
 
-    // the code to handle input
     vector<Rule> rules;
     char input[maxLineLength];
 
-    // handle grammar part
     cin.getline(input, maxLineLength);
 
     while(strcmp(input, "END_OF_GRAMMAR")) { // if same, strcmp would return 0
@@ -71,7 +65,6 @@ int main() {
 
     vector<FSet> firstSets, followSets, lastFollowSet;
 
-    // handle first set part
     cin.getline(input, maxLineLength);
 
     while(strcmp(input, "END_OF_FIRST_SET")) { // if same, strcmp would return 0
@@ -92,65 +85,38 @@ int main() {
 
     while(true) {
         bool breakKey = false;
-        
+
         for(int i = 0; i < rules.size(); i++) {
+            if(rules.at(i).hasLambda == true) {
+                continue;
+            }
+
             for(int j = 0; j < rules.at(i).production.length(); j++) {
                 int ruleIndex_j = getRuleIndex(&rules, rules.at(i).production.at(j));
 
                 if(ruleIndex_j == -1) {
                     break;
                 }
-                else if(rules.at(ruleIndex_j).hasLambda = false) {
+
+                if(rules.at(ruleIndex_j).hasLambda == false) {
                     break;
                 }
                 else if(j == rules.at(i).production.length() - 1 && rules.at(ruleIndex_j).hasLambda == true) {
                     rules.at(i).hasLambda = true;
                 }
             }
+        }
 
-
-            for(int i = 0; i < rules.size(); i++) {
-                if(rules.at(i).hasLambda != lastRules.at(i).hasLambda) {
-                    breakKey = false;
-                    break;
-                }
-                else if(i == rules.size() - 1 && rules.at(i).hasLambda == lastRules.at(i).hasLambda) {
-                    breakKey = true;
-                }
+        for(int i = 0; i < rules.size(); i++) {
+            if(rules.at(i).hasLambda != lastRules.at(i).hasLambda) {
+                break;
+            }
+            else if(i == rules.size() - 1 && rules.at(i).hasLambda == lastRules.at(i).hasLambda) {
+                breakKey = true;
             }
         }
 
         if(breakKey == true) {
-            char currentNonTerminal = '\0';
-            bool currentLambda = false;
-            for(int i = 0; i < rules.size(); i++) {
-                if(rules.at(i).hasLambda == true) {
-                    currentNonTerminal = rules.at(i).nonTerminal;
-                    currentLambda = true;
-                }
-                else if(rules.at(i).nonTerminal == currentNonTerminal && currentLambda == true) {
-                    rules.at(i).hasLambda = true;
-                }
-                else if(rules.at(i).nonTerminal != currentNonTerminal) {
-                    currentLambda = false;
-                }
-            }
-
-            currentNonTerminal = '\0';
-            currentLambda = false;
-            for(int i = rules.size() - 1; i >= 0; i--) {
-                if(rules.at(i).hasLambda == true) {
-                    currentNonTerminal = rules.at(i).nonTerminal;
-                    currentLambda = true;
-                }
-                else if(rules.at(i).nonTerminal == currentNonTerminal && currentLambda == true) {
-                    rules.at(i).hasLambda = true;
-                }
-                else if(rules.at(i).nonTerminal != currentNonTerminal) {
-                    currentLambda = false;
-                }
-            }
-
             break;
         }
         else {
@@ -164,6 +130,8 @@ int main() {
     while(true) {
         for(int i = 0; i < rules.size(); i++) {
             for(int j = 0; j < rules.at(i).production.length(); j++) {
+                bool allLambda = false;
+
                 int followSetIndex_j = getFSetIndex(&followSets, rules.at(i).production.at(j));
 
                 if(followSetIndex_j == -1) {
@@ -190,22 +158,29 @@ int main() {
 
                         //     followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_i).set;
                         // }
+                        else if(k == rules.at(i).production.length() - 1 && rules.at(ruleIndex_k).hasLambda == true) {
+                            allLambda = true;
+                        }
                         else {
-                            int followSetIndex_k = getFSetIndex(&followSets, rules.at(i).production.at(k));
+                            continue;
 
-                            cout << "1 " << followSets.at(followSetIndex_j).nonTerminal << " " << followSets.at(followSetIndex_j).set << endl;
+                            // int followSetIndex_k = getFSetIndex(&followSets, rules.at(i).production.at(k));
 
-                            followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_k).set;
-
-                            cout << "2 " << followSets.at(followSetIndex_j).nonTerminal << " " << followSets.at(followSetIndex_j).set << endl;
+                            // followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_k).set;
                         }
                     }
                 }
 
-                if(j + 1 >= rules.at(i).production.length()) {
+                if(allLambda == true) {
                     int followSetIndex_i = getFSetIndex(&followSets, rules.at(i).nonTerminal);
+                    cout << followSetIndex_i << endl;
                     followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_i).set;
                 }
+
+                // if(j + 1 >= rules.at(i).production.length()) {
+                //     int followSetIndex_i = getFSetIndex(&followSets, rules.at(i).nonTerminal);
+                //     followSets.at(followSetIndex_j).set += followSets.at(followSetIndex_i).set;
+                // }
             }
         }
 
