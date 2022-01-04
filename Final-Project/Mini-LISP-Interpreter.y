@@ -44,6 +44,7 @@
 %token PRINT_BOOL
 %token <integer> NUMBER
 %token END
+%token IF_WORD
 
 %type PROGRAM
 %type STMTS
@@ -53,6 +54,7 @@
 %type<stacktype> MULTI_EXP
 %type<datatype> NUM_OP
 %type<datatype> LOGICAL_OP
+%type<datatype> IF_EXP
 
 %%
 
@@ -92,6 +94,7 @@ EXP
     }
     |NUM_OP
     |LOGICAL_OP
+    |IF_EXP
     ;
 
 MULTI_EXP
@@ -349,6 +352,22 @@ LOGICAL_OP
         }
         else {
             $$.boolValue = "#t";
+        }
+    }
+    ;
+
+IF_EXP
+    :LS IF_WORD EXP EXP EXP RS {
+        if($3.type == "bool") {
+            if($3.boolValue == "#t") {
+                $$ = $4;
+            }
+            else {
+                $$ = $5;
+            }
+        }
+        else {
+            yyerror("Type is not bool.");
         }
     }
     ;

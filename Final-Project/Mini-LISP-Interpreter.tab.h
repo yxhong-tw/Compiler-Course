@@ -82,7 +82,8 @@ extern int yydebug;
     PRINT_NUM = 273,
     PRINT_BOOL = 274,
     NUMBER = 275,
-    END = 276
+    END = 276,
+    IF_WORD = 277
   };
 #endif
 
@@ -96,7 +97,7 @@ union YYSTYPE
     struct DataType datatype;
     struct StackType stacktype;
 
-#line 100 "Mini-LISP-Interpreter.tab.h"
+#line 101 "Mini-LISP-Interpreter.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

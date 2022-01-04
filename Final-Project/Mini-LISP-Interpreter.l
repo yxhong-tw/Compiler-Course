@@ -79,6 +79,10 @@
 	return PRINT_BOOL;
 }
 
+"if" {
+	return IF_WORD;
+}
+
 <<EOF>> {
 	return END;
 }

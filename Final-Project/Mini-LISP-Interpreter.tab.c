@@ -155,7 +155,8 @@ extern int yydebug;
     PRINT_NUM = 273,
     PRINT_BOOL = 274,
     NUMBER = 275,
-    END = 276
+    END = 276,
+    IF_WORD = 277
   };
 #endif
 
@@ -169,7 +170,7 @@ union YYSTYPE
     struct DataType datatype;
     struct StackType stacktype;
 
-#line 173 "Mini-LISP-Interpreter.tab.c"
+#line 174 "Mini-LISP-Interpreter.tab.c"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -486,21 +487,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  26
+#define YYFINAL  28
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   111
+#define YYLAST   115
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  22
+#define YYNTOKENS  23
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  9
+#define YYNNTS  10
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  30
+#define YYNRULES  32
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  74
+#define YYNSTATES  80
 
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   276
+#define YYMAXUTOK   277
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -539,17 +540,17 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20,    21
+      15,    16,    17,    18,    19,    20,    21,    22
 };
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    60,    60,    64,    65,    69,    77,    81,    85,    89,
-      93,    94,    98,   103,   111,   119,   129,   138,   155,   164,
-     173,   190,   199,   208,   223,   238,   256,   271,   298,   313,
-     340
+       0,    62,    62,    66,    67,    71,    79,    83,    87,    91,
+      95,    96,    97,   101,   106,   114,   122,   132,   141,   158,
+     167,   176,   193,   202,   211,   226,   241,   259,   274,   301,
+     316,   343,   360
 };
 #endif
 
@@ -561,8 +562,8 @@ static const char *const yytname[] =
   "$end", "error", "$undefined", "LS", "RS", "PLUS", "MINUS", "MULTIPLY",
   "DEVIDE", "MODULUS", "GREATER", "SMALLER", "EQUAL", "AND", "OR", "NOT",
   "BOOL_TRUE", "BOOL_FALSE", "PRINT_NUM", "PRINT_BOOL", "NUMBER", "END",
-  "$accept", "PROGRAM", "STMTS", "STMT", "EXP", "MULTI_EXP", "PRINT_STMT",
-  "NUM_OP", "LOGICAL_OP", YY_NULLPTR
+  "IF_WORD", "$accept", "PROGRAM", "STMTS", "STMT", "EXP", "MULTI_EXP",
+  "PRINT_STMT", "NUM_OP", "LOGICAL_OP", "IF_EXP", YY_NULLPTR
 };
 #endif
 
@@ -573,11 +574,11 @@ static const yytype_int16 yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
-     275,   276
+     275,   276,   277
 };
 # endif
 
-#define YYPACT_NINF (-13)
+#define YYPACT_NINF (-14)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -591,14 +592,14 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      27,    81,   -13,   -13,   -13,   -13,     1,   -13,    27,   -13,
-     -13,   -13,   -13,    65,    65,    65,    65,    65,    65,    65,
-      65,    65,    65,    65,    65,    65,   -13,   -13,    96,    65,
-      42,    65,    65,    47,    65,    65,    65,    65,    65,    65,
-      49,    65,    57,    -2,     2,     3,     7,   -13,   -13,     8,
-      22,   -13,    23,    24,    29,    36,    38,    45,   -13,    50,
-     -13,   -13,   -13,   -13,   -13,   -13,   -13,   -13,   -13,   -13,
-     -13,   -13,   -13,   -13
+      29,    46,   -14,   -14,   -14,   -14,     1,   -14,    29,   -14,
+     -14,   -14,   -14,   -14,    95,    95,    95,    95,    95,    95,
+      95,    95,    95,    95,    95,    95,    95,    95,   -14,   -14,
+      64,    95,    77,    95,    95,    79,    95,    95,    95,    95,
+      95,    95,    84,    95,    86,    -2,     2,     3,    95,     7,
+     -14,   -14,     8,     9,   -14,    24,    25,    26,    31,    38,
+      40,   -14,    43,   -14,   -14,   -14,   -14,    95,   -14,   -14,
+     -14,   -14,   -14,   -14,   -14,   -14,   -14,   -14,    58,   -14
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -607,25 +608,25 @@ static const yytype_int8 yypact[] =
 static const yytype_int8 yydefact[] =
 {
        0,     0,     8,     9,     7,     4,     0,     2,     0,     5,
-       6,    10,    11,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     1,     3,     0,     0,
+       6,    10,    11,    12,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     1,     3,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,    13,    17,    12,     0,
-      13,    20,     0,     0,     0,     0,     0,    13,    27,    13,
-      29,    30,    14,    15,    16,    18,    19,    21,    22,    23,
-      24,    25,    26,    28
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    14,
+      18,    13,     0,    14,    21,     0,     0,     0,     0,     0,
+      14,    28,    14,    30,    31,    15,    16,     0,    17,    19,
+      20,    22,    23,    24,    25,    26,    27,    29,     0,    32
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -13,   -13,    -4,   -13,     0,   -12,   -13,   -13,   -13
+     -14,   -14,    -4,   -14,     0,   -13,   -14,   -14,   -14,   -14
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     6,     7,     8,    48,    30,    10,    11,    12
+      -1,     6,     7,     8,    51,    32,    10,    11,    12,    13
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -633,66 +634,66 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       9,    26,    61,    33,    27,     0,    62,    63,     9,    40,
-      42,    64,    65,    29,    31,    32,    34,    35,    36,    37,
-      38,    39,    41,    43,    44,    45,    66,    67,    68,    46,
-       1,    49,    50,    69,    52,    53,    54,    55,    56,    57,
-      70,    59,    71,     2,     3,    28,    47,     4,     5,    72,
-      28,    51,    28,    58,    73,     0,     0,     0,     2,     3,
-      28,    60,     4,     2,     3,     2,     3,     4,    28,     4,
-       0,     0,     0,     2,     3,     0,     0,     4,     0,     0,
-       0,     2,     3,     0,     0,     4,    13,    14,    15,    16,
-      17,    18,    19,    20,    21,    22,    23,     0,     0,    24,
-      25,    13,    14,    15,    16,    17,    18,    19,    20,    21,
-      22,    23
+       9,    28,    64,    35,    29,     0,    65,    66,     9,    42,
+      44,    68,    69,    70,    31,    33,    34,    36,    37,    38,
+      39,    40,    41,    43,    45,    46,    47,    48,    71,    72,
+      73,    49,     1,    52,    53,    74,    55,    56,    57,    58,
+      59,    60,    75,    62,    76,     2,     3,    77,    67,     4,
+       5,    14,    15,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    79,     0,    25,    26,     0,    78,    27,    14,
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      30,    50,    30,    54,     0,     0,    27,    30,    61,    30,
+      63,     0,     0,     2,     3,     2,     3,     4,    30,     4,
+       2,     3,     2,     3,     4,     0,     4,     0,     0,     0,
+       0,     2,     3,     0,     0,     4
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,     0,     4,    15,     8,    -1,     4,     4,     8,    21,
-      22,     4,     4,    13,    14,    15,    16,    17,    18,    19,
-      20,    21,    22,    23,    24,    25,     4,     4,     4,    29,
-       3,    31,    32,     4,    34,    35,    36,    37,    38,    39,
-       4,    41,     4,    16,    17,     3,     4,    20,    21,     4,
-       3,     4,     3,     4,     4,    -1,    -1,    -1,    16,    17,
-       3,     4,    20,    16,    17,    16,    17,    20,     3,    20,
-      -1,    -1,    -1,    16,    17,    -1,    -1,    20,    -1,    -1,
-      -1,    16,    17,    -1,    -1,    20,     5,     6,     7,     8,
-       9,    10,    11,    12,    13,    14,    15,    -1,    -1,    18,
-      19,     5,     6,     7,     8,     9,    10,    11,    12,    13,
-      14,    15
+       0,     0,     4,    16,     8,    -1,     4,     4,     8,    22,
+      23,     4,     4,     4,    14,    15,    16,    17,    18,    19,
+      20,    21,    22,    23,    24,    25,    26,    27,     4,     4,
+       4,    31,     3,    33,    34,     4,    36,    37,    38,    39,
+      40,    41,     4,    43,     4,    16,    17,     4,    48,    20,
+      21,     5,     6,     7,     8,     9,    10,    11,    12,    13,
+      14,    15,     4,    -1,    18,    19,    -1,    67,    22,     5,
+       6,     7,     8,     9,    10,    11,    12,    13,    14,    15,
+       3,     4,     3,     4,    -1,    -1,    22,     3,     4,     3,
+       4,    -1,    -1,    16,    17,    16,    17,    20,     3,    20,
+      16,    17,    16,    17,    20,    -1,    20,    -1,    -1,    -1,
+      -1,    16,    17,    -1,    -1,    20
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,    16,    17,    20,    21,    23,    24,    25,    26,
-      28,    29,    30,     5,     6,     7,     8,     9,    10,    11,
-      12,    13,    14,    15,    18,    19,     0,    24,     3,    26,
-      27,    26,    26,    27,    26,    26,    26,    26,    26,    26,
-      27,    26,    27,    26,    26,    26,    26,     4,    26,    26,
-      26,     4,    26,    26,    26,    26,    26,    26,     4,    26,
-       4,     4,     4,     4,     4,     4,     4,     4,     4,     4,
-       4,     4,     4,     4
+       0,     3,    16,    17,    20,    21,    24,    25,    26,    27,
+      29,    30,    31,    32,     5,     6,     7,     8,     9,    10,
+      11,    12,    13,    14,    15,    18,    19,    22,     0,    25,
+       3,    27,    28,    27,    27,    28,    27,    27,    27,    27,
+      27,    27,    28,    27,    28,    27,    27,    27,    27,    27,
+       4,    27,    27,    27,     4,    27,    27,    27,    27,    27,
+      27,     4,    27,     4,     4,     4,     4,    27,     4,     4,
+       4,     4,     4,     4,     4,     4,     4,     4,    27,     4
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    22,    23,    24,    24,    25,    25,    26,    26,    26,
-      26,    26,    27,    27,    28,    28,    29,    29,    29,    29,
-      29,    29,    29,    29,    29,    29,    30,    30,    30,    30,
-      30
+       0,    23,    24,    25,    25,    26,    26,    27,    27,    27,
+      27,    27,    27,    28,    28,    29,    29,    30,    30,    30,
+      30,    30,    30,    30,    30,    30,    30,    31,    31,    31,
+      31,    31,    32
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
        0,     2,     1,     2,     1,     1,     1,     1,     1,     1,
-       1,     1,     2,     2,     4,     4,     5,     4,     5,     5,
-       4,     5,     5,     5,     5,     5,     5,     4,     5,     4,
-       4
+       1,     1,     1,     2,     2,     4,     4,     5,     4,     5,
+       5,     4,     5,     5,     5,     5,     5,     5,     4,     5,
+       4,     4,     6
 };
 
 
@@ -1388,7 +1389,7 @@ yyreduce:
   switch (yyn)
     {
   case 5:
-#line 69 "Mini-LISP-Interpreter.y"
+#line 71 "Mini-LISP-Interpreter.y"
          {
         // if($1.type == "int") {
         //     printf("%d", $1.intValue);
@@ -1397,58 +1398,58 @@ yyreduce:
         //     printf("%s", $1.boolValue);
         // }
     }
-#line 1401 "Mini-LISP-Interpreter.tab.c"
+#line 1402 "Mini-LISP-Interpreter.tab.c"
     break;
 
   case 7:
-#line 81 "Mini-LISP-Interpreter.y"
+#line 83 "Mini-LISP-Interpreter.y"
             {
         (yyval.datatype).type = "int";
         (yyval.datatype).intValue = (yyvsp[0].integer);
     }
-#line 1410 "Mini-LISP-Interpreter.tab.c"
+#line 1411 "Mini-LISP-Interpreter.tab.c"
     break;
 
   case 8:
-#line 85 "Mini-LISP-Interpreter.y"
+#line 87 "Mini-LISP-Interpreter.y"
                {
         (yyval.datatype).type = "bool";
         (yyval.datatype).boolValue = "#t";
     }
-#line 1419 "Mini-LISP-Interpreter.tab.c"
+#line 1420 "Mini-LISP-Interpreter.tab.c"
     break;
 
   case 9:
-#line 89 "Mini-LISP-Interpreter.y"
+#line 91 "Mini-LISP-Interpreter.y"
                 {
         (yyval.datatype).type = "bool";
         (yyval.datatype).boolValue = "#f";
     }
-#line 1428 "Mini-LISP-Interpreter.tab.c"
+#line 1429 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 12:
-#line 98 "Mini-LISP-Interpreter.y"
+  case 13:
+#line 101 "Mini-LISP-Interpreter.y"
                    {
         (yyval.stacktype) = (yyvsp[-1].stacktype);
         (yyval.stacktype).stack[(yyval.stacktype).pointer] = (yyvsp[0].datatype);
         (yyval.stacktype).pointer += 1;
     }
-#line 1438 "Mini-LISP-Interpreter.tab.c"
+#line 1439 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 13:
-#line 103 "Mini-LISP-Interpreter.y"
+  case 14:
+#line 106 "Mini-LISP-Interpreter.y"
              {
         (yyval.stacktype).stack[0] = (yyvsp[-1].datatype);
         (yyval.stacktype).stack[1] = (yyvsp[0].datatype);
         (yyval.stacktype).pointer = 2;
     }
-#line 1448 "Mini-LISP-Interpreter.tab.c"
+#line 1449 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 14:
-#line 111 "Mini-LISP-Interpreter.y"
+  case 15:
+#line 114 "Mini-LISP-Interpreter.y"
                          {
         if((yyvsp[-1].datatype).type == "int") {
             printf("%d", (yyvsp[-1].datatype).intValue);
@@ -1457,11 +1458,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1461 "Mini-LISP-Interpreter.tab.c"
+#line 1462 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 15:
-#line 119 "Mini-LISP-Interpreter.y"
+  case 16:
+#line 122 "Mini-LISP-Interpreter.y"
                           {
         if((yyvsp[-1].datatype).type == "bool") {
             printf("%s", (yyvsp[-1].datatype).boolValue);
@@ -1470,11 +1471,11 @@ yyreduce:
             yyerror("Type is not bool.");
         }
     }
-#line 1474 "Mini-LISP-Interpreter.tab.c"
+#line 1475 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 16:
-#line 129 "Mini-LISP-Interpreter.y"
+  case 17:
+#line 132 "Mini-LISP-Interpreter.y"
                         {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             (yyval.datatype).type = "int";
@@ -1484,11 +1485,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1488 "Mini-LISP-Interpreter.tab.c"
+#line 1489 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 17:
-#line 138 "Mini-LISP-Interpreter.y"
+  case 18:
+#line 141 "Mini-LISP-Interpreter.y"
                           {
         temp = 0;
 
@@ -1506,11 +1507,11 @@ yyreduce:
         (yyval.datatype).type = "int";
         (yyval.datatype).intValue = temp;
     }
-#line 1510 "Mini-LISP-Interpreter.tab.c"
+#line 1511 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 18:
-#line 155 "Mini-LISP-Interpreter.y"
+  case 19:
+#line 158 "Mini-LISP-Interpreter.y"
                          {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             (yyval.datatype).type = "int";
@@ -1520,11 +1521,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1524 "Mini-LISP-Interpreter.tab.c"
+#line 1525 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 19:
-#line 164 "Mini-LISP-Interpreter.y"
+  case 20:
+#line 167 "Mini-LISP-Interpreter.y"
                             {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             (yyval.datatype).type = "int";
@@ -1534,11 +1535,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1538 "Mini-LISP-Interpreter.tab.c"
+#line 1539 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 20:
-#line 173 "Mini-LISP-Interpreter.y"
+  case 21:
+#line 176 "Mini-LISP-Interpreter.y"
                               {
         temp = 1;
 
@@ -1556,11 +1557,11 @@ yyreduce:
         (yyval.datatype).type = "int";
         (yyval.datatype).intValue = temp;
     }
-#line 1560 "Mini-LISP-Interpreter.tab.c"
+#line 1561 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 21:
-#line 190 "Mini-LISP-Interpreter.y"
+  case 22:
+#line 193 "Mini-LISP-Interpreter.y"
                           {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             (yyval.datatype).type = "int";
@@ -1570,11 +1571,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1574 "Mini-LISP-Interpreter.tab.c"
+#line 1575 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 22:
-#line 199 "Mini-LISP-Interpreter.y"
+  case 23:
+#line 202 "Mini-LISP-Interpreter.y"
                            {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             (yyval.datatype).type = "int";
@@ -1584,11 +1585,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1588 "Mini-LISP-Interpreter.tab.c"
+#line 1589 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 23:
-#line 208 "Mini-LISP-Interpreter.y"
+  case 24:
+#line 211 "Mini-LISP-Interpreter.y"
                            {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             if((yyvsp[-2].datatype).intValue > (yyvsp[-1].datatype).intValue) {
@@ -1604,11 +1605,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1608 "Mini-LISP-Interpreter.tab.c"
+#line 1609 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 24:
-#line 223 "Mini-LISP-Interpreter.y"
+  case 25:
+#line 226 "Mini-LISP-Interpreter.y"
                            {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             if((yyvsp[-2].datatype).intValue < (yyvsp[-1].datatype).intValue) {
@@ -1624,11 +1625,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1628 "Mini-LISP-Interpreter.tab.c"
+#line 1629 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 25:
-#line 238 "Mini-LISP-Interpreter.y"
+  case 26:
+#line 241 "Mini-LISP-Interpreter.y"
                          {
         if((yyvsp[-2].datatype).type == "int" && (yyvsp[-1].datatype).type == "int") {
             if((yyvsp[-2].datatype).intValue == (yyvsp[-1].datatype).intValue) {
@@ -1644,11 +1645,11 @@ yyreduce:
             yyerror("Type is not integer.");
         }
     }
-#line 1648 "Mini-LISP-Interpreter.tab.c"
+#line 1649 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 26:
-#line 256 "Mini-LISP-Interpreter.y"
+  case 27:
+#line 259 "Mini-LISP-Interpreter.y"
                        {
         if((yyvsp[-2].datatype).type == "bool" && (yyvsp[-1].datatype).type == "bool") {
             (yyval.datatype).type = "bool";
@@ -1664,11 +1665,11 @@ yyreduce:
             yyerror("Type is not bool.");
         }
     }
-#line 1668 "Mini-LISP-Interpreter.tab.c"
+#line 1669 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 27:
-#line 271 "Mini-LISP-Interpreter.y"
+  case 28:
+#line 274 "Mini-LISP-Interpreter.y"
                          {
         temp = 1;
 
@@ -1696,11 +1697,11 @@ yyreduce:
             (yyval.datatype).boolValue = "#f";
         }
     }
-#line 1700 "Mini-LISP-Interpreter.tab.c"
+#line 1701 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 28:
-#line 298 "Mini-LISP-Interpreter.y"
+  case 29:
+#line 301 "Mini-LISP-Interpreter.y"
                       {
         if((yyvsp[-2].datatype).type == "bool" && (yyvsp[-1].datatype).type == "bool") {
             (yyval.datatype).type = "bool";
@@ -1716,11 +1717,11 @@ yyreduce:
             yyerror("Type is not bool.");
         }
     }
-#line 1720 "Mini-LISP-Interpreter.tab.c"
+#line 1721 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 29:
-#line 313 "Mini-LISP-Interpreter.y"
+  case 30:
+#line 316 "Mini-LISP-Interpreter.y"
                         {
         for(i = (yyvsp[-1].stacktype).pointer - 1; i >= 0; i--) {
             if((yyvsp[-1].stacktype).stack[i].type != "bool") {
@@ -1748,11 +1749,11 @@ yyreduce:
             (yyval.datatype).boolValue = "#f";
         }
     }
-#line 1752 "Mini-LISP-Interpreter.tab.c"
+#line 1753 "Mini-LISP-Interpreter.tab.c"
     break;
 
-  case 30:
-#line 340 "Mini-LISP-Interpreter.y"
+  case 31:
+#line 343 "Mini-LISP-Interpreter.y"
                    {
         if((yyvsp[-1].datatype).type != "bool") {
             yyerror("Type is not bool.");
@@ -1767,11 +1768,29 @@ yyreduce:
             (yyval.datatype).boolValue = "#t";
         }
     }
-#line 1771 "Mini-LISP-Interpreter.tab.c"
+#line 1772 "Mini-LISP-Interpreter.tab.c"
+    break;
+
+  case 32:
+#line 360 "Mini-LISP-Interpreter.y"
+                               {
+        if((yyvsp[-3].datatype).type == "bool") {
+            if((yyvsp[-3].datatype).boolValue == "#t") {
+                (yyval.datatype) = (yyvsp[-2].datatype);
+            }
+            else {
+                (yyval.datatype) = (yyvsp[-1].datatype);
+            }
+        }
+        else {
+            yyerror("Type is not bool.");
+        }
+    }
+#line 1790 "Mini-LISP-Interpreter.tab.c"
     break;
 
 
-#line 1775 "Mini-LISP-Interpreter.tab.c"
+#line 1794 "Mini-LISP-Interpreter.tab.c"
 
       default: break;
     }
@@ -2003,7 +2022,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 356 "Mini-LISP-Interpreter.y"
+#line 375 "Mini-LISP-Interpreter.y"
 
 
 void yyerror(const char *message) {
