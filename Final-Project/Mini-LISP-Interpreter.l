@@ -83,6 +83,15 @@
 	return IF_WORD;
 }
 
+"define" {
+	return DEFINE_WORD;
+}
+
+[a-z]([a-z]|[0-9]|"-")* {
+	yylval.string = strdup(yytext);
+	return VARIABLE;
+}
+
 <<EOF>> {
 	return END;
 }

@@ -1,9 +1,13 @@
 %{
     #include <stdio.h>
+    #include <string.h>
     
     int i;
     int temp;
     int pointer = 0;
+    int table_pointer = 0;
+    char *temp_string;
+    struct DataType element;
 %}
 
 %code requires {
@@ -11,16 +15,20 @@
         char *type;
         int intValue;
         char *boolValue;
+        char *varValue;
     };
 
     struct StackType {
         int pointer;
         struct DataType stack[1000];
     };
+
+    struct DataType variables_table[1000];
 }
 
 %union{
     int integer;
+    char *string;
     struct DataType datatype;
     struct StackType stacktype;
 }
@@ -45,16 +53,19 @@
 %token <integer> NUMBER
 %token END
 %token IF_WORD
+%token DEFINE_WORD
+%token <string> VARIABLE
 
 %type PROGRAM
 %type STMTS
 %type STMT
+%type DEF_STMT
 %type PRINT_STMT
-%type<datatype> EXP
-%type<stacktype> MULTI_EXP
-%type<datatype> NUM_OP
-%type<datatype> LOGICAL_OP
-%type<datatype> IF_EXP
+%type <datatype> EXP
+%type <stacktype> MULTI_EXP
+%type <datatype> NUM_OP
+%type <datatype> LOGICAL_OP
+%type <datatype> IF_EXP
 
 %%
 
@@ -76,6 +87,7 @@ STMT
         //     printf("%s", $1.boolValue);
         // }
     }
+    |DEF_STMT
     |PRINT_STMT
     ;
 
@@ -92,6 +104,23 @@ EXP
         $$.type = "bool";
         $$.boolValue = "#f";
     }
+    |VARIABLE {
+        temp = 0;
+
+        for(i = 0; i < table_pointer; i++) {
+            if(strcmp(variables_table[i].varValue, $1) == 0) {
+                $$ = variables_table[i];
+
+                temp = 1;
+
+                break;
+            }
+        }
+
+        if(temp == 0) {
+            yyerror("The variable does not exist.");
+        }
+    }
     |NUM_OP
     |LOGICAL_OP
     |IF_EXP
@@ -107,6 +136,29 @@ MULTI_EXP
         $$.stack[0] = $1;
         $$.stack[1] = $2;
         $$.pointer = 2;
+    }
+    ;
+
+DEF_STMT
+    :LS DEFINE_WORD VARIABLE EXP RS {
+        variables_table[table_pointer].varValue = $3;
+        // element.varValue = $3;
+
+        if($4.type == "int") {
+            // element.type = "int";
+            // element.intValue = $4.intValue;
+            variables_table[table_pointer].type = "int";
+            variables_table[table_pointer].intValue = $4.intValue;
+        }
+        else {
+            // element.type = "bool";
+            // element.boolValue = $4.boolValue;
+            variables_table[table_pointer].type = "bool";
+            variables_table[table_pointer].boolValue = $4.boolValue;
+        }
+
+        // variables_table[table_pointer] = element;
+        table_pointer += 1;
     }
     ;
 

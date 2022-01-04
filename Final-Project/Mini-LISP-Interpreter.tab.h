@@ -44,12 +44,13 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 9 "Mini-LISP-Interpreter.y"
+#line 13 "Mini-LISP-Interpreter.y"
 
     struct DataType {
         char *type;
         int intValue;
         char *boolValue;
+        char *varValue;
     };
 
     struct StackType {
@@ -57,7 +58,9 @@ extern int yydebug;
         struct DataType stack[1000];
     };
 
-#line 61 "Mini-LISP-Interpreter.tab.h"
+    struct DataType variables_table[1000];
+
+#line 64 "Mini-LISP-Interpreter.tab.h"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -83,7 +86,9 @@ extern int yydebug;
     PRINT_BOOL = 274,
     NUMBER = 275,
     END = 276,
-    IF_WORD = 277
+    IF_WORD = 277,
+    DEFINE_WORD = 278,
+    VARIABLE = 279
   };
 #endif
 
@@ -91,13 +96,14 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "Mini-LISP-Interpreter.y"
+#line 29 "Mini-LISP-Interpreter.y"
 
     int integer;
+    char *string;
     struct DataType datatype;
     struct StackType stacktype;
 
-#line 101 "Mini-LISP-Interpreter.tab.h"
+#line 107 "Mini-LISP-Interpreter.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
