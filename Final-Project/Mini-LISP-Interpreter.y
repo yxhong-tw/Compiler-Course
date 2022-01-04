@@ -35,6 +35,11 @@
 %token GREATER
 %token SMALLER
 %token EQUAL
+%token AND
+%token OR
+%token NOT
+%token BOOL_TRUE
+%token BOOL_FALSE
 %token PRINT_NUM
 %token PRINT_BOOL
 %token <integer> NUMBER
@@ -47,6 +52,7 @@
 %type<datatype> EXP
 %type<stacktype> MULTI_EXP
 %type<datatype> NUM_OP
+%type<datatype> LOGICAL_OP
 
 %%
 
@@ -76,7 +82,16 @@ EXP
         $$.type = "int";
         $$.intValue = $1;
     }
+    |BOOL_TRUE {
+        $$.type = "bool";
+        $$.boolValue = "#t";
+    }
+    |BOOL_FALSE {
+        $$.type = "bool";
+        $$.boolValue = "#f";
+    }
     |NUM_OP
+    |LOGICAL_OP
     ;
 
 MULTI_EXP
@@ -233,6 +248,107 @@ NUM_OP
         }
         else {
             yyerror("Type is not integer.");
+        }
+    }
+    ;
+
+LOGICAL_OP
+    :LS AND EXP EXP RS {
+        if($3.type == "bool" && $4.type == "bool") {
+            $$.type = "bool";
+
+            if($3.boolValue == "#t" && $4.boolValue == "#t") {
+                $$.boolValue = "#t";
+            }
+            else {
+                $$.boolValue = "#f";
+            }
+        }
+        else {
+            yyerror("Type is not bool.");
+        }
+    }
+    |LS AND MULTI_EXP RS {
+        temp = 1;
+
+        for(i = $3.pointer - 1; i >= 0; i--) {
+            if($3.stack[i].type != "bool") {
+                yyerror("Type is not bool.");
+            }
+        }
+
+        for(i = $3.pointer - 1; i >= 0; i--) {
+            if($3.stack[i].boolValue != "#t") {
+                temp = 0;
+                break;
+            }
+        }
+
+        $3.pointer = 0;
+
+        $$.type = "bool";
+
+        if(temp == 1) {
+            $$.boolValue = "#t";
+        }
+        else {
+            $$.boolValue = "#f";
+        }
+    }
+    |LS OR EXP EXP RS {
+        if($3.type == "bool" && $4.type == "bool") {
+            $$.type = "bool";
+
+            if($3.boolValue == "#t" || $4.boolValue == "#t") {
+                $$.boolValue = "#t";
+            }
+            else {
+                $$.boolValue = "#f";
+            }
+        }
+        else {
+            yyerror("Type is not bool.");
+        }
+    }
+    |LS OR MULTI_EXP RS {
+        for(i = $3.pointer - 1; i >= 0; i--) {
+            if($3.stack[i].type != "bool") {
+                yyerror("Type is not bool.");
+            }
+        }
+
+        temp = 0;
+
+        for(i = $3.pointer - 1; i >= 0; i--) {
+            if($3.stack[i].boolValue == "#t") {
+                temp = 1;
+                break;
+            }
+        }
+
+        $3.pointer = 0;
+
+        $$.type = "bool";
+
+        if(temp == 1) {
+            $$.boolValue = "#t";
+        }
+        else {
+            $$.boolValue = "#f";
+        }
+    }
+    |LS NOT EXP RS {
+        if($3.type != "bool") {
+            yyerror("Type is not bool.");
+        }
+
+        $$.type = "bool";
+
+        if($3.boolValue == "#t") {
+            $$.boolValue = "#f";
+        }
+        else {
+            $$.boolValue = "#t";
         }
     }
     ;

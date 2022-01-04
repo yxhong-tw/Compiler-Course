@@ -51,6 +51,26 @@
 	return EQUAL;
 }
 
+"and" {
+	return AND;
+}
+
+"or" {
+	return OR;
+}
+
+"not" {
+	return NOT;
+}
+
+"#t" {
+	return BOOL_TRUE;
+}
+
+"#f" {
+	return BOOL_FALSE;
+}
+
 "print-num" {
 	return PRINT_NUM;
 }

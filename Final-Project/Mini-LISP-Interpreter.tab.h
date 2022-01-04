@@ -57,9 +57,7 @@ extern int yydebug;
         struct DataType stack[1000];
     };
 
-    // DataType stack;
-
-#line 63 "Mini-LISP-Interpreter.tab.h"
+#line 61 "Mini-LISP-Interpreter.tab.h"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -76,13 +74,15 @@ extern int yydebug;
     GREATER = 265,
     SMALLER = 266,
     EQUAL = 267,
-    AND_OP = 268,
-    OR_OP = 269,
-    NOT_OP = 270,
-    PRINT_NUM = 271,
-    PRINT_BOOL = 272,
-    NUMBER = 273,
-    END = 274
+    AND = 268,
+    OR = 269,
+    NOT = 270,
+    BOOL_TRUE = 271,
+    BOOL_FALSE = 272,
+    PRINT_NUM = 273,
+    PRINT_BOOL = 274,
+    NUMBER = 275,
+    END = 276
   };
 #endif
 
@@ -90,7 +90,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 24 "Mini-LISP-Interpreter.y"
+#line 22 "Mini-LISP-Interpreter.y"
 
     int integer;
     struct DataType datatype;
