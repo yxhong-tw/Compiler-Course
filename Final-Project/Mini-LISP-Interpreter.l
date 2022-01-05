@@ -87,6 +87,10 @@
 	return DEFINE_WORD;
 }
 
+"lambda" {
+	return LAMBDA;
+}
+
 [a-z]([a-z]|[0-9]|"-")* {
 	yylval.string = strdup(yytext);
 	return VARIABLE;

@@ -5,9 +5,8 @@
     int i;
     int temp;
     int pointer = 0;
-    int table_pointer = 0;
-    char *temp_string;
-    struct DataType element;
+    struct StackType variables_table;
+    struct StackType temp_stack;
 %}
 
 %code requires {
@@ -16,14 +15,13 @@
         int intValue;
         char *boolValue;
         char *varValue;
+        int inFunction;
     };
 
     struct StackType {
         int pointer;
         struct DataType stack[1000];
     };
-
-    struct DataType variables_table[1000];
 }
 
 %union{
@@ -55,6 +53,7 @@
 %token IF_WORD
 %token DEFINE_WORD
 %token <string> VARIABLE
+%token LAMBDA
 
 %type PROGRAM
 %type STMTS
@@ -66,6 +65,7 @@
 %type <datatype> NUM_OP
 %type <datatype> LOGICAL_OP
 %type <datatype> IF_EXP
+%type <datatype> FUN_EXP
 
 %%
 
@@ -80,12 +80,6 @@ STMTS
 
 STMT
     :EXP {
-        // if($1.type == "int") {
-        //     printf("%d", $1.intValue);
-        // }
-        // else {
-        //     printf("%s", $1.boolValue);
-        // }
     }
     |DEF_STMT
     |PRINT_STMT
@@ -95,25 +89,48 @@ EXP
     :NUMBER {
         $$.type = "int";
         $$.intValue = $1;
+        $$.boolValue = "";
+        $$.varValue = "";
+        $$.inFunction = 0;
     }
     |BOOL_TRUE {
         $$.type = "bool";
         $$.boolValue = "#t";
+        $$.intValue = 0;
+        $$.varValue = "";
+        $$.inFunction = 0;
     }
     |BOOL_FALSE {
         $$.type = "bool";
         $$.boolValue = "#f";
+        $$.intValue = 0;
+        $$.varValue = "";
+        $$.inFunction = 0;
     }
     |VARIABLE {
         temp = 0;
 
-        for(i = 0; i < table_pointer; i++) {
-            if(strcmp(variables_table[i].varValue, $1) == 0) {
-                $$ = variables_table[i];
+        temp_stack.pointer = 0;
+
+        for(i = 0; i < variables_table.pointer; i++) {
+            if(strcmp(variables_table.stack[i].varValue, $1) == 0) {
+                temp_stack.stack[temp_stack.pointer] = variables_table.stack[i];
+                temp_stack.pointer += 1;
 
                 temp = 1;
+            }
+        }
 
-                break;
+        if(temp_stack.pointer == 1) {
+            $$ = temp_stack.stack[0];
+        }
+        else {
+            for(i = 0; i < temp_stack.pointer; i++) {
+                if(temp_stack.stack[i].inFunction == 1) {
+                    $$ = temp_stack.stack[i];
+
+                    break;
+                }
             }
         }
 
@@ -124,6 +141,7 @@ EXP
     |NUM_OP
     |LOGICAL_OP
     |IF_EXP
+    |FUN_EXP
     ;
 
 MULTI_EXP
@@ -141,24 +159,18 @@ MULTI_EXP
 
 DEF_STMT
     :LS DEFINE_WORD VARIABLE EXP RS {
-        variables_table[table_pointer].varValue = $3;
-        // element.varValue = $3;
+        variables_table.stack[variables_table.pointer].varValue = $3;
 
         if($4.type == "int") {
-            // element.type = "int";
-            // element.intValue = $4.intValue;
-            variables_table[table_pointer].type = "int";
-            variables_table[table_pointer].intValue = $4.intValue;
+            variables_table.stack[variables_table.pointer].type = "int";
+            variables_table.stack[variables_table.pointer].intValue = $4.intValue;
         }
         else {
-            // element.type = "bool";
-            // element.boolValue = $4.boolValue;
-            variables_table[table_pointer].type = "bool";
-            variables_table[table_pointer].boolValue = $4.boolValue;
+            variables_table.stack[variables_table.pointer].type = "bool";
+            variables_table.stack[variables_table.pointer].boolValue = $4.boolValue;
         }
 
-        // variables_table[table_pointer] = element;
-        table_pointer += 1;
+        variables_table.pointer += 1;
     }
     ;
 
@@ -421,6 +433,22 @@ IF_EXP
         else {
             yyerror("Type is not bool.");
         }
+    }
+    ;
+
+FUN_EXP
+    :LS LAMBDA LS VARIABLE {
+        variables_table.stack[variables_table.pointer].varValue = $4;
+
+        variables_table.stack[variables_table.pointer].type = "";    // TODO:
+        variables_table.stack[variables_table.pointer].intValue = 0;    // TODO:
+        variables_table.stack[variables_table.pointer].boolValue = "";
+        variables_table.stack[variables_table.pointer].inFunction = 1;
+
+        variables_table.pointer += 1;
+    } RS EXP RS{
+        $$ = $7;
+
     }
     ;
 

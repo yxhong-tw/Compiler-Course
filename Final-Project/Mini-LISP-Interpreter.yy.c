@@ -352,8 +352,8 @@ static void yynoreturn yy_fatal_error ( const char* msg  );
 	(yy_hold_char) = *yy_cp; \
 	*yy_cp = '\0'; \
 	(yy_c_buf_p) = yy_cp;
-#define YY_NUM_RULES 23
-#define YY_END_OF_BUFFER 24
+#define YY_NUM_RULES 24
+#define YY_END_OF_BUFFER 25
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -361,14 +361,15 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[58] =
+static const flex_int16_t yy_accept[64] =
     {   0,
-        0,    0,   24,   23,    4,   23,    2,    3,    7,    5,
-        6,    8,    1,    1,   11,   12,   10,   22,   22,   22,
-       22,   22,   22,   22,   22,   17,   16,    1,    1,   22,
-       22,   22,   20,   22,   22,   14,   22,    1,   13,   22,
-        9,   15,   22,   22,   22,   22,   22,   21,   22,   22,
-       22,   22,   22,   22,   18,   19,    0
+        0,    0,   25,   24,    4,   24,    2,    3,    7,    5,
+        6,    8,    1,    1,   11,   12,   10,   23,   23,   23,
+       23,   23,   23,   23,   23,   23,   17,   16,    1,    1,
+       23,   23,   23,   20,   23,   23,   23,   14,   23,    1,
+       13,   23,   23,    9,   15,   23,   23,   23,   23,   23,
+       23,   23,   21,   22,   23,   23,   23,   23,   23,   23,
+       18,   19,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -410,54 +411,58 @@ static const YY_CHAR yy_meta[30] =
         2,    2,    2,    2,    2,    2,    2,    2,    2
     } ;
 
-static const flex_int16_t yy_base[59] =
+static const flex_int16_t yy_base[65] =
     {   0,
-        0,    0,   67,   68,   68,   10,   68,   68,   68,   68,
-       55,   68,   68,   21,   68,   68,   68,   41,    0,   45,
-       43,   37,   36,   33,   32,   68,   68,   23,   25,    0,
-       40,   37,    0,   38,   27,    0,   33,   29,    0,   32,
-        0,    0,   28,   27,   22,   30,   40,    0,   21,   22,
-       17,   19,   20,   20,    0,    0,   68,   39
+        0,    0,   72,   73,   73,   10,   73,   73,   73,   73,
+       60,   73,   73,   21,   73,   73,   73,   46,    0,   50,
+       48,   52,   41,   40,   37,   36,   73,   73,   23,   25,
+        0,   44,   41,    0,   37,   41,   30,    0,   36,   29,
+        0,   35,   39,    0,    0,   30,   29,   34,   23,   31,
+       34,   40,    0,    0,   21,   22,   17,   19,   20,   20,
+        0,    0,   73,   39
     } ;
 
-static const flex_int16_t yy_def[59] =
+static const flex_int16_t yy_def[65] =
     {   0,
-       57,    1,   57,   57,   57,   57,   57,   57,   57,   57,
-       57,   57,   57,   57,   57,   57,   57,   58,   58,   58,
-       58,   58,   58,   58,   58,   57,   57,   57,   57,   58,
-       58,   58,   58,   58,   58,   58,   58,   57,   58,   58,
-       58,   58,   58,   58,   58,   58,   58,   58,   58,   58,
-       58,   58,   58,   58,   58,   58,    0,   57
+       63,    1,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   64,   64,   64,
+       64,   64,   64,   64,   64,   64,   63,   63,   63,   63,
+       64,   64,   64,   64,   64,   64,   64,   64,   64,   63,
+       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
+       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
+       64,   64,    0,   63
     } ;
 
-static const flex_int16_t yy_nxt[98] =
+static const flex_int16_t yy_nxt[103] =
     {   0,
         4,    5,    6,    7,    8,    9,   10,   11,   12,   13,
        14,   15,   16,   17,   18,   19,   19,   20,   19,   19,
-       21,   19,   22,   23,   24,   25,   19,   19,   19,   26,
-       29,   29,   38,   38,   29,   29,   50,   27,   38,   38,
-       30,   56,   55,   54,   51,   53,   52,   49,   48,   47,
-       46,   45,   44,   43,   42,   41,   40,   39,   37,   36,
-       35,   34,   33,   32,   31,   28,   57,    3,   57,   57,
-       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
-       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
-       57,   57,   57,   57,   57,   57,   57
+       21,   22,   23,   24,   25,   26,   19,   19,   19,   27,
+       30,   30,   40,   40,   30,   30,   56,   28,   40,   40,
+       31,   62,   61,   60,   57,   59,   58,   55,   54,   53,
+       52,   51,   50,   49,   48,   47,   46,   45,   44,   43,
+       42,   41,   39,   38,   37,   36,   35,   34,   33,   32,
+       29,   63,    3,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
 
+       63,   63
     } ;
 
-static const flex_int16_t yy_chk[98] =
+static const flex_int16_t yy_chk[103] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    6,
-       14,   14,   28,   28,   29,   29,   49,    6,   38,   38,
-       58,   54,   53,   52,   49,   51,   50,   47,   46,   45,
-       44,   43,   40,   37,   35,   34,   32,   31,   25,   24,
-       23,   22,   21,   20,   18,   11,    3,   57,   57,   57,
-       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
-       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
-       57,   57,   57,   57,   57,   57,   57
+       14,   14,   29,   29,   30,   30,   55,    6,   40,   40,
+       64,   60,   59,   58,   55,   57,   56,   52,   51,   50,
+       49,   48,   47,   46,   43,   42,   39,   37,   36,   35,
+       33,   32,   26,   25,   24,   23,   22,   21,   20,   18,
+       11,    3,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+       63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
 
+       63,   63
     } ;
 
 static yy_state_type yy_last_accepting_state;
@@ -477,8 +482,8 @@ char *yytext;
 #line 1 "Mini-LISP-Interpreter.l"
 #line 2 "Mini-LISP-Interpreter.l"
 	#include "Mini-LISP-Interpreter.tab.h"
-#line 481 "Mini-LISP-Interpreter.yy.c"
-#line 482 "Mini-LISP-Interpreter.yy.c"
+#line 486 "Mini-LISP-Interpreter.yy.c"
+#line 487 "Mini-LISP-Interpreter.yy.c"
 
 #define INITIAL 0
 
@@ -698,7 +703,7 @@ YY_DECL
 #line 5 "Mini-LISP-Interpreter.l"
 
 
-#line 702 "Mini-LISP-Interpreter.yy.c"
+#line 707 "Mini-LISP-Interpreter.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -725,13 +730,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 58 )
+				if ( yy_current_state >= 64 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 68 );
+		while ( yy_base[yy_current_state] != 73 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -905,22 +910,29 @@ case 22:
 YY_RULE_SETUP
 #line 90 "Mini-LISP-Interpreter.l"
 {
+	return LAMBDA;
+}
+	YY_BREAK
+case 23:
+YY_RULE_SETUP
+#line 94 "Mini-LISP-Interpreter.l"
+{
 	yylval.string = strdup(yytext);
 	return VARIABLE;
 }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 95 "Mini-LISP-Interpreter.l"
+#line 99 "Mini-LISP-Interpreter.l"
 {
 	return END;
 }
 	YY_BREAK
-case 23:
+case 24:
 YY_RULE_SETUP
-#line 99 "Mini-LISP-Interpreter.l"
+#line 103 "Mini-LISP-Interpreter.l"
 ECHO;
 	YY_BREAK
-#line 924 "Mini-LISP-Interpreter.yy.c"
+#line 936 "Mini-LISP-Interpreter.yy.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1215,7 +1227,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 58 )
+			if ( yy_current_state >= 64 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1243,11 +1255,11 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 58 )
+		if ( yy_current_state >= 64 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 57);
+	yy_is_jam = (yy_current_state == 63);
 
 		return yy_is_jam ? 0 : yy_current_state;
 }
@@ -1923,5 +1935,5 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 99 "Mini-LISP-Interpreter.l"
+#line 103 "Mini-LISP-Interpreter.l"
 
