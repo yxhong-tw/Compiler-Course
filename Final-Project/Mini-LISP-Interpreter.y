@@ -66,6 +66,7 @@
 %type <datatype> LOGICAL_OP
 %type <datatype> IF_EXP
 %type <datatype> FUN_EXP
+%type <stacktype> MULTI_VARIABLE
 
 %%
 
@@ -437,7 +438,71 @@ IF_EXP
     ;
 
 FUN_EXP
-    :LS LAMBDA LS VARIABLE {
+    :LS LAMBDA LS VARIABLE RS EXP RS EXP{
+        variables_table.stack[variables_table.pointer].varValue = $4;
+
+        variables_table.stack[variables_table.pointer].type = $8.type;
+        variables_table.stack[variables_table.pointer].intValue = $8.intValue;
+        variables_table.stack[variables_table.pointer].boolValue = $8.boolValue;
+        variables_table.stack[variables_table.pointer].inFunction = 1;
+
+        variables_table.pointer += 1;
+
+        $$ = $6;
+
+        printf("%d", $6.intValue);
+    }
+    /* :LS LAMBDA LS VARIABLE {
+        variables_table.stack[variables_table.pointer].varValue = $4;
+
+        variables_table.stack[variables_table.pointer].type = $9.type;
+        variables_table.stack[variables_table.pointer].intValue = $9.intValue;
+        variables_table.stack[variables_table.pointer].boolValue = $9.boolValue;
+        variables_table.stack[variables_table.pointer].inFunction = 1;
+
+        variables_table.pointer += 1;
+    } RS EXP RS EXP{
+        $$ = $7;
+    } */
+    |LS LAMBDA LS MULTI_VARIABLE RS EXP RS MULTI_EXP {
+        if($8.pointer == $4.pointer) {
+            for(i = 0; i < $4.pointer; i++) {
+                $4.stack[i].type = $8.stack[i].type;
+                $4.stack[i].intValue = $8.stack[i].intValue;
+                $4.stack[i].boolValue = $8.stack[i].boolValue;
+                $4.stack[i].inFunction = 1;
+
+                variables_table.stack[variables_table.pointer] = $4.stack[i];
+        
+                variables_table.pointer += 1;
+            }
+        }
+        else {
+            yyerror("The number of parameters and values does not match.");
+        }
+
+        $$ = $6;
+    }
+    /* |LS LAMBDA LS MULTI_VARIABLE {
+        if($9.pointer == $4.pointer) {
+            for(i = 0; i < $4.pointer; i++) {
+                $4.stack[i].type = $9.stack[i].type;
+                $4.stack[i].intValue = $9.stack[i].intValue;
+                $4.stack[i].boolValue = $9.stack[i].boolValue;
+                $4.stack[i].inFunction = 1;
+
+                variables_table.stack[variables_table.pointer] = $4.stack[i];
+        
+                variables_table.pointer += 1;
+            }
+        }
+        else {
+            yyerror("The number of parameters and values does not match.");
+        }
+    } RS EXP RS MULTI_EXP {
+        $$ = $7;
+    } */
+    /* |LS LAMBDA LS VARIABLE {
         variables_table.stack[variables_table.pointer].varValue = $4;
 
         variables_table.stack[variables_table.pointer].type = "";    // TODO:
@@ -448,7 +513,42 @@ FUN_EXP
         variables_table.pointer += 1;
     } RS EXP RS{
         $$ = $7;
+    }
+    |LS LAMBDA LS MULTI_VARIABLE {
+        for(i = 0; i < $4.pointer; i++) {
+            variables_table.stack[variables_table.pointer] = $4.stack[i];
+    
+            variables_table.pointer += 1;
+        }
+    } RS EXP RS {
+        $$ = $7;
+    } */
+    ;
 
+MULTI_VARIABLE
+    :MULTI_VARIABLE VARIABLE {
+        $$ = $1;
+        $$.stack[$$.pointer].varValue = $2;
+        $$.stack[$$.pointer].type = "";
+        $$.stack[$$.pointer].intValue = 0;
+        $$.stack[$$.pointer].boolValue = "";
+        $$.stack[$$.pointer].inFunction = 1;
+
+        $$.pointer += 1;
+    }
+    |VARIABLE VARIABLE {
+        $$.stack[0].varValue = $1;
+        $$.stack[0].type = "";
+        $$.stack[0].intValue = 0;
+        $$.stack[0].boolValue = "";
+        $$.stack[0].inFunction = 1;
+        $$.stack[1].varValue = $2;
+        $$.stack[1].type = "";
+        $$.stack[1].intValue = 0;
+        $$.stack[1].boolValue = "";
+        $$.stack[1].inFunction = 1;
+
+        $$.pointer = 2;
     }
     ;
 
