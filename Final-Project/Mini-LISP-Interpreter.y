@@ -2,33 +2,58 @@
     #include <stdio.h>
     #include <string.h>
     
-    int i;
-    int temp;
-    int pointer = 0;
-    struct StackType variables_table;
-    struct StackType temp_stack;
+    int i;  // loop counter
+    int inFunction = 0; // 0 -> not in function, 1 -> in function
+    int counter;
+
+    struct DataTableType variableTable; // variables' table
+    variableTable.size = 0;
+
+    struct FunctionTableType functionTable;
+    functionTable.pointer = -1;
+    functionTable.size = 0;
+
+    struct ValueStack valueStack;
 %}
 
 %code requires {
     struct DataType {
-        char *type;
+        char *type; // "int", "bool"
         int intValue;
-        char *boolValue;
-        char *varValue;
-        int inFunction;
+        char *boolValue;    // "#t", "#f"
+        char *varValue; // variable's name
+        int functionIndex;
     };
 
-    struct StackType {
+    struct DataTableType {
+        int size;
+        struct DataType table[1000];
+    };
+
+    struct FunctionType {
+        char *name;
+        int functionIndex;  // -2 -> value, -1 -> global variable
+    };
+
+    struct FunctionTableType {
         int pointer;
-        struct DataType stack[1000];
+        int size;
+        struct FunctionType table[1000];
+    };
+
+    struct ValueStack {
+        int pointer;
+        int stack[1000];
     };
 }
 
 %union{
     int integer;
     char *string;
-    struct DataType datatype;
-    struct StackType stacktype;
+    struct DataType dataType;
+    struct DataTableType dataTableType;
+    struct FunctionType functionType;
+    struct FunctionTableType functionTableType;
 }
 
 %token LS
@@ -60,13 +85,15 @@
 %type STMT
 %type DEF_STMT
 %type PRINT_STMT
-%type <datatype> EXP
-%type <stacktype> MULTI_EXP
-%type <datatype> NUM_OP
-%type <datatype> LOGICAL_OP
-%type <datatype> IF_EXP
-%type <datatype> FUN_EXP
-%type <stacktype> MULTI_VARIABLE
+%type <dataType> EXP
+%type <dataTableType> MULTI_EXP
+%type <dataType> NUM_OP
+%type <dataType> LOGICAL_OP
+%type <dataType> IF_EXP
+%type <dataType> FUN_EXP
+%type <dataTableType> MULTI_VARIABLE
+%type <functionType> FUN_PART
+%type FUN_PARAM
 
 %%
 
@@ -80,8 +107,7 @@ STMTS
     ;
 
 STMT
-    :EXP {
-    }
+    :EXP
     |DEF_STMT
     |PRINT_STMT
     ;
@@ -92,51 +118,63 @@ EXP
         $$.intValue = $1;
         $$.boolValue = "";
         $$.varValue = "";
-        $$.inFunction = 0;
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;  // -2 for value
+        }
+        else {  // inFunction == 1
+            $$.functionIndex = functionTable.pointer;
+        }
     }
     |BOOL_TRUE {
         $$.type = "bool";
-        $$.boolValue = "#t";
         $$.intValue = 0;
+        $$.boolValue = "#t";
         $$.varValue = "";
-        $$.inFunction = 0;
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;  // -2 for value
+        }
+        else {  // inFunction == 1
+            $$.functionIndex = functionTable.pointer;
+        }
     }
     |BOOL_FALSE {
         $$.type = "bool";
-        $$.boolValue = "#f";
         $$.intValue = 0;
+        $$.boolValue = "#f";
         $$.varValue = "";
-        $$.inFunction = 0;
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;  // -2 for value
+        }
+        else {  // inFunction == 1
+            $$.functionIndex = functionTable.pointer;
+        }
     }
     |VARIABLE {
-        temp = 0;
-
-        temp_stack.pointer = 0;
-
-        for(i = 0; i < variables_table.pointer; i++) {
-            if(strcmp(variables_table.stack[i].varValue, $1) == 0) {
-                temp_stack.stack[temp_stack.pointer] = variables_table.stack[i];
-                temp_stack.pointer += 1;
-
-                temp = 1;
-            }
-        }
-
-        if(temp_stack.pointer == 1) {
-            $$ = temp_stack.stack[0];
-        }
-        else {
-            for(i = 0; i < temp_stack.pointer; i++) {
-                if(temp_stack.stack[i].inFunction == 1) {
-                    $$ = temp_stack.stack[i];
-
+        if(inFunction == 0) {
+            for(i = 0; i < variableTable.size; i++) {
+                // 0 -> equal, -1 for global variable
+                if(strcmp(variableTable.table[i].varValue, $1) == 0 && variableTable.table[i].functionIndex == -1) {
+                    $$ = variableTable.table[i];
                     break;
+                }
+                else if(i == variableTable.size - 1) {
+                    yyerror("The variable does not exist.");
                 }
             }
         }
-
-        if(temp == 0) {
-            yyerror("The variable does not exist.");
+        else {  // inFunction == 1
+            for(i = 0; i < variableTable.size; i++) {
+                if(strcmp(variableTable.table[i].varValue, $1) == 0 && variableTable.table[i].functionIndex == functionTable.pointer) {
+                    $$ = variableTable.table[i];
+                    break;
+                }
+                else if(i == variableTable.size - 1) {
+                    yyerror("The variable does not exist.");
+                }
+            }
         }
     }
     |NUM_OP
@@ -148,30 +186,36 @@ EXP
 MULTI_EXP
     :MULTI_EXP EXP {
         $$ = $1;
-        $$.stack[$$.pointer] = $2;
-        $$.pointer += 1;
+        $$.table[$$.size] = $2; // size also the beginning index of empty space
+        $$.size += 1;
     }
     |EXP EXP {
-        $$.stack[0] = $1;
-        $$.stack[1] = $2;
-        $$.pointer = 2;
+        $$.table[0] = $1;
+        $$.table[1] = $2;
+        $$.size = 2;
     }
     ;
 
 DEF_STMT
     :LS DEFINE_WORD VARIABLE EXP RS {
-        variables_table.stack[variables_table.pointer].varValue = $3;
-
-        if($4.type == "int") {
-            variables_table.stack[variables_table.pointer].type = "int";
-            variables_table.stack[variables_table.pointer].intValue = $4.intValue;
+        if(inFunction == 0) {   // define in global
+            for(i = 0; i < variableTable.size; i++) {
+                // find
+                if(strcmp(variableTable.table[i].varValue, $3) == 0 && variableTable.table[i].functionIndex == -1) {
+                    variableTable.table[i] = $4;    // replace old one to new one
+                    variableTable.table[i].varValue = $3;
+                }
+                else if(i == variableTable.size - 1) {  // not find
+                    variableTable.table[variableTable.size] = $4;   // save a new variable into table
+                    variableTable.table[variableTable.size].varValue = $3;
+                    variableTable.table[variableTable.size].functionIndex = -1;
+                    variableTable.size += 1;
+                }
+            }
         }
-        else {
-            variables_table.stack[variables_table.pointer].type = "bool";
-            variables_table.stack[variables_table.pointer].boolValue = $4.boolValue;
+        else {  // inFunction == 1
+            // TODO: but not do will not affect result in public data
         }
-
-        variables_table.pointer += 1;
     }
     ;
 
@@ -194,70 +238,84 @@ PRINT_STMT
     }
 
 NUM_OP
-    :LS PLUS EXP EXP RS {
-        if($3.type == "int" && $4.type == "int") {
-            $$.type = "int";
-            $$.intValue = $3.intValue + $4.intValue;
+    :LS PLUS MULTI_EXP RS {
+        $$.type = "int";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
         }
         else {
-            yyerror("Type is not integer.");
+            $$.functionIndex = functionTable.pointer;
         }
-    }
-    |LS PLUS MULTI_EXP RS {
-        temp = 0;
 
-        for(i = $3.pointer - 1; i >= 0; i--) {
-            if($3.stack[i].type == "int") {
-                temp += $3.stack[i].intValue;
+        for(i = 0; i < $3.size; i++) {
+            if($3.table[i].type == "int") {
+                $$.intValue += $3.table[i].intValue;
             }
             else {
                 yyerror("Type is not integer.");
             }
         }
-
-        $3.pointer = 0;
-
-        $$.type = "int";
-        $$.intValue = temp;
     }
     |LS MINUS EXP EXP RS {
+        $$.type = "int";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
         if($3.type == "int" && $4.type == "int") {
-            $$.type = "int";
             $$.intValue = $3.intValue - $4.intValue;
         }
         else {
             yyerror("Type is not integer.");
         }
     }
-    |LS MULTIPLY EXP EXP RS {
-        if($3.type == "int" && $4.type == "int") {
-            $$.type = "int";
-            $$.intValue = $3.intValue * $4.intValue;
+    |LS MULTIPLY MULTI_EXP RS {
+        $$.type = "int";
+        $$.intValue = 1;    // mul need 1
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
         }
         else {
-            yyerror("Type is not integer.");
+            $$.functionIndex = functionTable.pointer;
         }
-    }
-    |LS MULTIPLY MULTI_EXP RS {
-        temp = 1;
 
-        for(i = $3.pointer - 1; i >= 0; i--) {
-            if($3.stack[i].type == "int") {
-                temp *= $3.stack[i].intValue;
+        for(i = 0; i < $3.size; i++) {
+            if($3.table[i].type == "int") {
+                $$.intValue *= $3.table[i].intValue;
             }
             else {
                 yyerror("Type is not integer.");
             }
         }
-        
-        $3.pointer = 0;
-
-        $$.type = "int";
-        $$.intValue = temp;
     }
     |LS DEVIDE EXP EXP RS {
+        $$.type = "int";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
         if($3.type == "int" && $4.type == "int") {
-            $$.type = "int";
             $$.intValue = $3.intValue / $4.intValue;
         }
         else {
@@ -265,8 +323,19 @@ NUM_OP
         }
     }
     |LS MODULUS EXP EXP RS {
+        $$.type = "int";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
         if($3.type == "int" && $4.type == "int") {
-            $$.type = "int";
             $$.intValue = $3.intValue % $4.intValue;
         }
         else {
@@ -274,13 +343,23 @@ NUM_OP
         }
     }
     |LS GREATER EXP EXP RS {
+        $$.type = "bool";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
         if($3.type == "int" && $4.type == "int") {
             if($3.intValue > $4.intValue) {
-                $$.type = "bool";
                 $$.boolValue = "#t";
             }
             else {
-                $$.type = "bool";
                 $$.boolValue = "#f";
             }
         }
@@ -289,13 +368,23 @@ NUM_OP
         }
     }
     |LS SMALLER EXP EXP RS {
+        $$.type = "bool";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
         if($3.type == "int" && $4.type == "int") {
             if($3.intValue < $4.intValue) {
-                $$.type = "bool";
                 $$.boolValue = "#t";
             }
             else {
-                $$.type = "bool";
                 $$.boolValue = "#f";
             }
         }
@@ -304,13 +393,23 @@ NUM_OP
         }
     }
     |LS EQUAL EXP EXP RS {
+        $$.type = "bool";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
         if($3.type == "int" && $4.type == "int") {
             if($3.intValue == $4.intValue) {
-                $$.type = "bool";
                 $$.boolValue = "#t";
             }
             else {
-                $$.type = "bool";
                 $$.boolValue = "#f";
             }
         }
@@ -321,96 +420,80 @@ NUM_OP
     ;
 
 LOGICAL_OP
-    :LS AND EXP EXP RS {
-        if($3.type == "bool" && $4.type == "bool") {
-            $$.type = "bool";
+    :LS AND MULTI_EXP RS {
+        $$.type = "bool";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
 
-            if($3.boolValue == "#t" && $4.boolValue == "#t") {
-                $$.boolValue = "#t";
-            }
-            else {
-                $$.boolValue = "#f";
-            }
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
         }
         else {
-            yyerror("Type is not bool.");
+            $$.functionIndex = functionTable.pointer;
         }
-    }
-    |LS AND MULTI_EXP RS {
-        temp = 1;
 
-        for(i = $3.pointer - 1; i >= 0; i--) {
-            if($3.stack[i].type != "bool") {
+        for(i = 0; i < $3.size; i++) {
+            if($3.table[i].type != "bool") {
                 yyerror("Type is not bool.");
             }
         }
 
-        for(i = $3.pointer - 1; i >= 0; i--) {
-            if($3.stack[i].boolValue != "#t") {
-                temp = 0;
+        for(i = 0; i < $3.size; i++) {
+            if($3.table[i].boolValue != "#t") {
+                $$.boolValue = "#f";
                 break;
             }
-        }
-
-        $3.pointer = 0;
-
-        $$.type = "bool";
-
-        if(temp == 1) {
-            $$.boolValue = "#t";
-        }
-        else {
-            $$.boolValue = "#f";
-        }
-    }
-    |LS OR EXP EXP RS {
-        if($3.type == "bool" && $4.type == "bool") {
-            $$.type = "bool";
-
-            if($3.boolValue == "#t" || $4.boolValue == "#t") {
+            else if(i == $3.size - 1) {
                 $$.boolValue = "#t";
             }
-            else {
-                $$.boolValue = "#f";
-            }
-        }
-        else {
-            yyerror("Type is not bool.");
         }
     }
     |LS OR MULTI_EXP RS {
-        for(i = $3.pointer - 1; i >= 0; i--) {
-            if($3.stack[i].type != "bool") {
+        $$.type = "bool";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
+        for(i = 0; i < $3.size; i++) {
+            if($3.table[i].type != "bool") {
                 yyerror("Type is not bool.");
             }
         }
 
-        temp = 0;
-
-        for(i = $3.pointer - 1; i >= 0; i--) {
-            if($3.stack[i].boolValue == "#t") {
-                temp = 1;
+        for(i = 0; i < $3.size; i++) {
+            if($3.table[i].boolValue != "#f") {
+                $$.boolValue = "#t";
                 break;
             }
-        }
-
-        $3.pointer = 0;
-
-        $$.type = "bool";
-
-        if(temp == 1) {
-            $$.boolValue = "#t";
-        }
-        else {
-            $$.boolValue = "#f";
+            else if(i == $3.size - 1) {
+                $$.boolValue = "#f";
+            }
         }
     }
     |LS NOT EXP RS {
+        $$.type = "bool";
+        $$.intValue = 0;
+        $$.boolValue = "";
+        $$.varValue = "";
+
+        if(inFunction == 0) {
+            $$.functionIndex = -2;
+        }
+        else {
+            $$.functionIndex = functionTable.pointer;
+        }
+
         if($3.type != "bool") {
             yyerror("Type is not bool.");
         }
-
-        $$.type = "bool";
 
         if($3.boolValue == "#t") {
             $$.boolValue = "#f";
@@ -437,97 +520,95 @@ IF_EXP
     }
     ;
 
+FUN_PART
+    :LAMBDA LS VARIABLE {
+        inFunction = 1;
+
+        $$.name = "";
+        $$.functionIndex = functionTable.size;
+
+        functionTable.pointer = $$.functionIndex;
+        functionTable.size += 1;
+
+        for(i = 0; i < variableTable.size; i++) {
+            // find
+            if(strcmp(variableTable.table[i].varValue, $3) == 0 && variableTable.table[i].functionIndex == $$.functionIndex) {
+                yyerror("There are same name parameters.");
+            }
+            else if(i == variableTable.size - 1) {  // not find
+                variableTable.table[variableTable.size].type = "";
+                variableTable.table[variableTable.size].intValue = 0;
+                variableTable.table[variableTable.size].boolValue = "";
+                variableTable.table[variableTable.size].varValue = $3;
+                variableTable.table[variableTable.size].functionIndex = $$.functionIndex;
+                variableTable.size += 1;
+            }
+        }
+    }
+    ;
+
+FUN_PARAM
+    :EXP {
+        counter = 0;
+
+        for(i = 0; i < variableTable.size; i++) {
+            if(variableTable.table[i].functionIndex == $1.functionIndex) {
+                counter += 1;
+            }
+        }
+
+        if(counter != 1) {
+            yyerror("The number of parameter(s) and value(s) can not be match.");
+        }
+        else {
+            for(i = 0; i < variableTable.size; i++) {
+                if(variableTable.table[i].functionIndex == $1.functionIndex) {
+                    $1.varValue = variableTable.table[i].varValue;
+                    variableTable.table[i] = $1;
+                    break;
+                }
+            }
+        }
+    }
+    |MULTI_EXP {
+        counter = 0;
+
+        for(i = 0; i < variableTable.size; i++) {
+            if(variableTable.table[i].functionIndex == $1.table[0].functionIndex) {
+                counter += 1;
+            }
+        }
+
+        if(counter != $1.size) {
+            yyerror("The number of parameter(s) and value(s) can not be match.");
+        }
+        else {
+            counter = 0;
+
+            for(i = 0; i < variableTable.size; i++) {
+                if(variableTable.table[i].functionIndex == $1.table[counter].functionIndex) {
+                    $1.table[counter].varValue = variableTable.table[i].varValue;
+                    variableTable.table[i] = $1.table[counter];
+                    counter += 1;
+
+                    if(counter >= $1.size) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    ;
+
 FUN_EXP
-    :LS LAMBDA LS VARIABLE RS EXP RS EXP{
-        variables_table.stack[variables_table.pointer].varValue = $4;
-
-        variables_table.stack[variables_table.pointer].type = $8.type;
-        variables_table.stack[variables_table.pointer].intValue = $8.intValue;
-        variables_table.stack[variables_table.pointer].boolValue = $8.boolValue;
-        variables_table.stack[variables_table.pointer].inFunction = 1;
-
-        variables_table.pointer += 1;
-
-        $$ = $6;
-
-        printf("%d", $6.intValue);
+    :LS FUN_PART EXP RS FUN_PARAM{
+        $$ = $3;
     }
-    /* :LS LAMBDA LS VARIABLE {
-        variables_table.stack[variables_table.pointer].varValue = $4;
-
-        variables_table.stack[variables_table.pointer].type = $9.type;
-        variables_table.stack[variables_table.pointer].intValue = $9.intValue;
-        variables_table.stack[variables_table.pointer].boolValue = $9.boolValue;
-        variables_table.stack[variables_table.pointer].inFunction = 1;
-
-        variables_table.pointer += 1;
-    } RS EXP RS EXP{
-        $$ = $7;
-    } */
-    |LS LAMBDA LS MULTI_VARIABLE RS EXP RS MULTI_EXP {
-        if($8.pointer == $4.pointer) {
-            for(i = 0; i < $4.pointer; i++) {
-                $4.stack[i].type = $8.stack[i].type;
-                $4.stack[i].intValue = $8.stack[i].intValue;
-                $4.stack[i].boolValue = $8.stack[i].boolValue;
-                $4.stack[i].inFunction = 1;
-
-                variables_table.stack[variables_table.pointer] = $4.stack[i];
-        
-                variables_table.pointer += 1;
-            }
-        }
-        else {
-            yyerror("The number of parameters and values does not match.");
-        }
-
-        $$ = $6;
-    }
-    /* |LS LAMBDA LS MULTI_VARIABLE {
-        if($9.pointer == $4.pointer) {
-            for(i = 0; i < $4.pointer; i++) {
-                $4.stack[i].type = $9.stack[i].type;
-                $4.stack[i].intValue = $9.stack[i].intValue;
-                $4.stack[i].boolValue = $9.stack[i].boolValue;
-                $4.stack[i].inFunction = 1;
-
-                variables_table.stack[variables_table.pointer] = $4.stack[i];
-        
-                variables_table.pointer += 1;
-            }
-        }
-        else {
-            yyerror("The number of parameters and values does not match.");
-        }
-    } RS EXP RS MULTI_EXP {
-        $$ = $7;
-    } */
-    /* |LS LAMBDA LS VARIABLE {
-        variables_table.stack[variables_table.pointer].varValue = $4;
-
-        variables_table.stack[variables_table.pointer].type = "";    // TODO:
-        variables_table.stack[variables_table.pointer].intValue = 0;    // TODO:
-        variables_table.stack[variables_table.pointer].boolValue = "";
-        variables_table.stack[variables_table.pointer].inFunction = 1;
-
-        variables_table.pointer += 1;
-    } RS EXP RS{
-        $$ = $7;
-    }
-    |LS LAMBDA LS MULTI_VARIABLE {
-        for(i = 0; i < $4.pointer; i++) {
-            variables_table.stack[variables_table.pointer] = $4.stack[i];
-    
-            variables_table.pointer += 1;
-        }
-    } RS EXP RS {
-        $$ = $7;
-    } */
     ;
 
 MULTI_VARIABLE
     :MULTI_VARIABLE VARIABLE {
-        $$ = $1;
+        $$ = $1;    // TODO: un optimize
         $$.stack[$$.pointer].varValue = $2;
         $$.stack[$$.pointer].type = "";
         $$.stack[$$.pointer].intValue = 0;
