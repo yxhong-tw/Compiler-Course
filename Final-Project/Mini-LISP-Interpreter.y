@@ -7,13 +7,11 @@
     int counter;
 
     struct DataTableType variableTable; // variables' table
-    variableTable.size = 0;
+    // variableTable.size = 0;
 
     struct FunctionTableType functionTable;
-    functionTable.pointer = -1;
-    functionTable.size = 0;
-
-    struct ValueStack valueStack;
+    // functionTable.pointer = -1;
+    // functionTable.size = 0;
 %}
 
 %code requires {
@@ -39,11 +37,6 @@
         int pointer;
         int size;
         struct FunctionType table[1000];
-    };
-
-    struct ValueStack {
-        int pointer;
-        int stack[1000];
     };
 }
 
@@ -163,6 +156,9 @@ EXP
                 else if(i == variableTable.size - 1) {
                     yyerror("The variable does not exist.");
                 }
+                else {
+                    printf("Impossible part1\n");
+                }
             }
         }
         else {  // inFunction == 1
@@ -173,6 +169,9 @@ EXP
                 }
                 else if(i == variableTable.size - 1) {
                     yyerror("The variable does not exist.");
+                }
+                else {
+                    printf("Impossible part2\n");
                 }
             }
         }
@@ -521,7 +520,8 @@ IF_EXP
     ;
 
 FUN_PART
-    :LAMBDA LS VARIABLE {
+    :LAMBDA LS VARIABLE RS {
+
         inFunction = 1;
 
         $$.name = "";
@@ -529,6 +529,7 @@ FUN_PART
 
         functionTable.pointer = $$.functionIndex;
         functionTable.size += 1;
+        functionTable.table[$$.functionIndex] = $$;
 
         for(i = 0; i < variableTable.size; i++) {
             // find
@@ -544,11 +545,14 @@ FUN_PART
                 variableTable.size += 1;
             }
         }
+
+        printf("a\n");
     }
     ;
 
 FUN_PARAM
     :EXP {
+        printf("b\n");
         counter = 0;
 
         for(i = 0; i < variableTable.size; i++) {
@@ -601,8 +605,9 @@ FUN_PARAM
     ;
 
 FUN_EXP
-    :LS FUN_PART EXP RS FUN_PARAM{
-        $$ = $3;
+    :LS LS FUN_PART EXP RS FUN_PARAM RS{
+        printf("HELLO\n");
+        $$ = $4;
     }
     ;
 

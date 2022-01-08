@@ -44,32 +44,33 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 12 "Mini-LISP-Interpreter.y"
+#line 17 "Mini-LISP-Interpreter.y"
 
     struct DataType {
         char *type; // "int", "bool"
         int intValue;
         char *boolValue;    // "#t", "#f"
         char *varValue; // variable's name
-        int inFunction; // 0 -> global, 1 -> in function, TODO: replace by functionIndex
+        int functionIndex;
     };
 
     struct DataTableType {
-        int pointer;
+        int size;
         struct DataType table[1000];
     };
 
     struct FunctionType {
         char *name;
-        int functionIndex;
+        int functionIndex;  // -2 -> value, -1 -> global variable
     };
 
     struct FunctionTableType {
         int pointer;
+        int size;
         struct FunctionType table[1000];
     };
 
-#line 73 "Mini-LISP-Interpreter.tab.h"
+#line 74 "Mini-LISP-Interpreter.tab.h"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -106,14 +107,16 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 37 "Mini-LISP-Interpreter.y"
+#line 43 "Mini-LISP-Interpreter.y"
 
     int integer;
     char *string;
     struct DataType dataType;
     struct DataTableType dataTableType;
+    struct FunctionType functionType;
+    struct FunctionTableType functionTableType;
 
-#line 117 "Mini-LISP-Interpreter.tab.h"
+#line 120 "Mini-LISP-Interpreter.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
