@@ -44,33 +44,239 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 17 "Mini-LISP-Interpreter.y"
+#line 1 "Mini-LISP-Interpreter.y"
 
-    struct DataType {
-        char *type; // "int", "bool"
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <string.h>
+    
+    typedef struct DataType {
+        char *type; // "int", "bool", "func"
+
         int intValue;
         char *boolValue;    // "#t", "#f"
-        char *varValue; // variable's name
-        int functionIndex;
-    };
+        char *varValue; // variable's or function's name
 
-    struct DataTableType {
+        int functionIndex;
+
+        char *operator; // "+", "-", "*", "/", "mod", ">", "<", "=", "and", "or", "not"
+        int elementPointer;
+        struct DataType *element[1000];
+    } dt;
+
+    typedef struct DataTableType {
         int size;
         struct DataType table[1000];
-    };
+    } dtt;
 
-    struct FunctionType {
-        char *name;
-        int functionIndex;  // -2 -> value, -1 -> global variable
-    };
+    int i;  // loop counter
+    int variableCounter;
+    int currentFunctionIndex;
+    int functionIndexStackPointer = 0;
+    int functionIndexStack[1000];
 
-    struct FunctionTableType {
-        int pointer;
-        int size;
-        struct FunctionType table[1000];
-    };
+    struct DataTableType variableTable; // variables' table
+    struct DataTableType functionTable; // functions' table
 
-#line 74 "Mini-LISP-Interpreter.tab.h"
+    dt travel(dt data, int functionIndex) {
+        struct DataTableType variables;
+        variables.size = 0;
+
+        for(int j = 0; j < variableTable.size; j++) {
+            if(variableTable.table[j].functionIndex == functionIndex) {
+                variables.table[variables.size] = variableTable.table[j];
+                variables.size += 1;
+            }
+        }
+
+        for(int j = 0; j < data.elementPointer; j++) {
+            if(strlen(data.element[j]->operator) != 0) {
+                *data.element[j] = travel(*data.element[j], functionIndex);
+            }
+            else {
+                for(int k = 0; k < variables.size; k++) {
+                    if(strcmp(data.element[j]->varValue, variables.table[k].varValue) == 0) {
+                        *data.element[j] = variables.table[k];
+                    }
+                }
+            }
+        }
+
+        dt ret_data;
+
+        if(data.operator == "+") {
+            ret_data.type = "int";
+            ret_data.intValue = 0;
+
+            for(int j = 0; j < data.elementPointer; j++) {
+                if(strcmp(data.element[j]->type, "int") == 0) {
+                    ret_data.intValue += data.element[j]->intValue;
+                }
+                else {
+                    printf("Type error\n");
+                    exit(0);
+                }
+            }
+        }
+        else if(data.operator == "-") {
+            ret_data.type = "int";
+
+            if(strcmp(data.element[0]->type, "int") == 0 && strcmp(data.element[1]->type, "int") == 0) {
+                ret_data.intValue = data.element[0]->intValue - data.element[1]->intValue;
+            }
+            else {
+                printf("Type error\n");
+                exit(0);
+            }
+        }
+        else if(data.operator == "*") {
+            ret_data.type = "int";
+            ret_data.intValue = 1;
+
+            for(int j = 0; j < data.elementPointer; j++) {
+                if(strcmp(data.element[j]->type, "int") == 0) {
+                    ret_data.intValue *= data.element[j]->intValue;
+                }
+                else {
+                    printf("Type error\n");
+                    exit(0);
+                }
+            }
+        }
+        else if(data.operator == "/") {
+                ret_data.type = "int";
+
+                if(strcmp(data.element[0]->type, "int") == 0 && strcmp(data.element[1]->type, "int") == 0) {
+                    ret_data.intValue = data.element[0]->intValue / data.element[1]->intValue;
+                }
+                else {
+                    printf("Type error\n");
+                    exit(0);
+                }
+        }
+        else if(data.operator == "mod") {
+            ret_data.type = "int";
+
+            if(strcmp(data.element[0]->type, "int") == 0 && strcmp(data.element[1]->type, "int") == 0) {
+                ret_data.intValue = data.element[0]->intValue % data.element[1]->intValue;
+            }
+            else {
+                printf("Type error\n");
+                exit(0);
+            }
+        }
+        else if(data.operator == ">") {
+            ret_data.type = "bool";
+
+            if(strcmp(data.element[0]->type, "int") == 0 && strcmp(data.element[1]->type, "int") == 0) {
+                if(data.element[0]->intValue > data.element[1]->intValue) {
+                    ret_data.boolValue = "#t";
+                }
+                else {
+                    ret_data.boolValue = "#f";
+                }
+            }
+            else {
+                printf("Type error\n");
+                exit(0);
+            }
+        }
+        else if(data.operator == "<") {
+            ret_data.type = "bool";
+
+            if(strcmp(data.element[0]->type, "int") == 0 && strcmp(data.element[1]->type, "int") == 0) {
+                if(data.element[0]->intValue < data.element[1]->intValue) {
+                    ret_data.boolValue = "#t";
+                }
+                else {
+                    ret_data.boolValue = "#f";
+                }
+            }
+            else {
+                printf("Type error\n");
+                exit(0);
+            }
+        }
+        else if(data.operator == "=") {
+            ret_data.type = "bool";
+
+            if(strcmp(data.element[0]->type, "int") == 0 && strcmp(data.element[1]->type, "int") == 0) {
+                if(data.element[0]->intValue == data.element[1]->intValue) {
+                    ret_data.boolValue = "#t";
+                }
+                else {
+                    ret_data.boolValue = "#f";
+                }
+            }
+            else {
+                printf("Type error\n");
+                exit(0);
+            }
+        }
+        else if(data.operator == "and") {
+            ret_data.type = "bool";
+
+            for(int j = 0; j < data.elementPointer; j++) {
+                if(strcmp(data.element[j]->type, "bool") == 0) {
+                    if(data.element[j]->boolValue != "#t") {
+                        ret_data.boolValue = "#f";
+
+                        break;
+                    }
+                    else {
+                        ret_data.boolValue = "#t";
+                    }
+                }
+                else {
+                    printf("Type error\n");
+                    exit(0);
+                }
+            }
+        }
+        else if(data.operator == "or") {
+            ret_data.type = "bool";
+
+            for(int j = 0; j < data.elementPointer; j++) {
+                if(strcmp(data.element[j]->type, "bool") == 0) {
+                    if(data.element[j]->boolValue == "#t") {
+                        ret_data.boolValue = "#t";
+
+                        break;
+                    }
+                    else {
+                        ret_data.boolValue = "#f";
+                    }
+                }
+                else {
+                    printf("Type error\n");
+                    exit(0);
+                }
+            }
+        }
+        else if(data.operator == "not") {
+            ret_data.type = "bool";
+
+            if(strcmp(data.element[0]->type, "bool") == 0) {
+                if(data.element[0]->boolValue == "#t") {
+                    ret_data.boolValue = "#f";
+                }
+                else {
+                    ret_data.boolValue = "#t";
+                }
+            }
+            else {
+                printf("Type error\n");
+                exit(0);
+            }
+        }
+        else {
+            printf("This is impossible case.\n");
+        }
+
+        return ret_data;
+    }
+
+#line 280 "Mini-LISP-Interpreter.tab.h"
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -90,16 +296,16 @@ extern int yydebug;
     AND = 268,
     OR = 269,
     NOT = 270,
-    BOOL_TRUE = 271,
-    BOOL_FALSE = 272,
-    PRINT_NUM = 273,
-    PRINT_BOOL = 274,
-    NUMBER = 275,
-    END = 276,
+    NUMBER = 271,
+    BOOL_TRUE = 272,
+    BOOL_FALSE = 273,
+    PRINT_NUM = 274,
+    PRINT_BOOL = 275,
+    DEFINE_WORD = 276,
     IF_WORD = 277,
-    DEFINE_WORD = 278,
-    VARIABLE = 279,
-    LAMBDA = 280
+    VARIABLE = 278,
+    LAMBDA = 279,
+    END = 280
   };
 #endif
 
@@ -107,16 +313,14 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 43 "Mini-LISP-Interpreter.y"
+#line 236 "Mini-LISP-Interpreter.y"
 
     int integer;
     char *string;
     struct DataType dataType;
     struct DataTableType dataTableType;
-    struct FunctionType functionType;
-    struct FunctionTableType functionTableType;
 
-#line 120 "Mini-LISP-Interpreter.tab.h"
+#line 324 "Mini-LISP-Interpreter.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
