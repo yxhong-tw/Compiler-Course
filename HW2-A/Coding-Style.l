@@ -1,6 +1,6 @@
 /*
-	flex -o lex.yy.c Coding_Style.l
-	gcc -o Coding_Style lex.yy.c
+	flex -o lex.yy.c Coding-Style.l
+	gcc -o Coding-Style lex.yy.c
 */
 
 /*
